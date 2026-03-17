@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enneagram Test — Discover Your Inner Architecture</title>
+  <meta name="description" content="Take this free 108-question Enneagram personality test. Available in English and Vietnamese." />
+  <meta property="og:title" content="Enneagram Personality Test" />
+  <meta property="og:description" content="108 questions to reveal your core personality type and romantic compatibility." />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { min-height: 100vh; }
+    body { background: #0a0a0f; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useState, useRef, createContext, useContext } = React;
+
+    // ─── i18n Context ───
+const LangCtx = createContext();
+const useLang = () => useContext(LangCtx);
+
+// ─── Translation data ───
+const UI = {
+  en: {
+    tagline: "Discover Your Inner Architecture",
+    intro: "108 carefully crafted questions will reveal your core personality type, your deepest motivations, and how you connect with others in love.",
+    begin: "Begin the Journey",
+    duration: "~15 minutes · No data collected",
+    yourType: "Your Enneagram Type",
+    scoreBreakdown: "Score Breakdown",
+    strengths: "Strengths",
+    challenges: "Challenges",
+    growthTitle: "Path of Growth",
+    famousTitle: (n) => `Famous Type ${n}s`,
+    compatTitle: "Romantic Compatibility",
+    compatSub: (n) => `How Type ${n} connects in love with each type`,
+    sameType: "SAME TYPE",
+    retake: "Retake the Test",
+    back: "← Back",
+    next: "Next →",
+    seeResults: "See My Results ◉",
+    jumpUnanswered: (n) => `Jump to next unanswered (${n} remaining)`,
+    answers: ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"],
+  },
+  vi: {
+    tagline: "Khám Phá Kiến Trúc Nội Tâm Của Bạn",
+    intro: "108 câu hỏi được thiết kế kỹ lưỡng sẽ tiết lộ loại tính cách cốt lõi, động lực sâu xa nhất, và cách bạn kết nối với người khác trong tình yêu.",
+    begin: "Bắt Đầu Hành Trình",
+    duration: "~15 phút · Không thu thập dữ liệu",
+    yourType: "Loại Enneagram Của Bạn",
+    scoreBreakdown: "Phân Tích Điểm Số",
+    strengths: "Điểm Mạnh",
+    challenges: "Thách Thức",
+    growthTitle: "Con Đường Phát Triển",
+    famousTitle: (n) => `Người Nổi Tiếng Loại ${n}`,
+    compatTitle: "Tương Hợp Tình Yêu",
+    compatSub: (n) => `Loại ${n} kết nối trong tình yêu với từng loại khác`,
+    sameType: "CÙNG LOẠI",
+    retake: "Làm Lại Bài Trắc Nghiệm",
+    back: "← Quay Lại",
+    next: "Tiếp →",
+    seeResults: "Xem Kết Quả ◉",
+    jumpUnanswered: (n) => `Chuyển đến câu chưa trả lời (còn ${n} câu)`,
+    answers: ["Rất Không Đồng Ý", "Không Đồng Ý", "Trung Lập", "Đồng Ý", "Rất Đồng Ý"],
+  }
+};
+
+// ─── Type data (bilingual) ───
+const TYPES_DATA = {
+  en: {
+    1: { name: "The Reformer", subtitle: "Principled, Purposeful, Self-Controlled",
+      description: "You are driven by a deep sense of right and wrong. Ones are conscientious, ethical, and have a strong sense of purpose. You strive for integrity and fear being corrupt or defective. At your best, you are wise, discerning, realistic, and noble — morally heroic.",
+      strengths: ["Integrity", "Responsibility", "Attention to detail", "Fairness", "Self-discipline"],
+      challenges: ["Perfectionism", "Self-criticism", "Rigidity", "Resentment when others don't meet standards"],
+      growth: "Learn to embrace imperfection. Practice self-compassion and recognize that mistakes are part of being human. Your inner critic doesn't always tell the truth.",
+      famous: [
+        { name: "Mahatma Gandhi", note: "Embodied principled reform" },
+        { name: "Michelle Obama", note: "Integrity-driven leadership" },
+        { name: "Martha Stewart", note: "Perfectionism channeled productively" },
+        { name: "Brené Brown", note: "Principled vulnerability advocate" }
+      ]
+    },
+    2: { name: "The Helper", subtitle: "Generous, Demonstrative, People-Pleasing",
+      description: "You are driven by the need to be loved and needed. Twos are empathetic, sincere, and warm-hearted. You go out of your way to help others, sometimes neglecting your own needs. At your best, you are genuinely altruistic, unconditionally loving, and deeply generous.",
+      strengths: ["Empathy", "Generosity", "Warmth", "Interpersonal awareness", "Supportiveness"],
+      challenges: ["People-pleasing", "Difficulty setting boundaries", "Suppressing own needs", "Possessiveness"],
+      growth: "Learn to give to yourself first. Recognize that your worth isn't determined by how much you do for others. Healthy boundaries are acts of love, not selfishness.",
+      famous: [
+        { name: "Mother Teresa", note: "Selfless service personified" },
+        { name: "Dolly Parton", note: "Generous spirit and warmth" },
+        { name: "Desmond Tutu", note: "Compassionate leadership" },
+        { name: "Mr. Rogers", note: "Unconditional positive regard" }
+      ]
+    },
+    3: { name: "The Achiever", subtitle: "Adaptive, Excelling, Driven",
+      description: "You are driven by the need to succeed and be admired. Threes are ambitious, competent, and energetic. You excel at adapting to achieve goals and can be highly charismatic. At your best, you are authentic, self-accepting, and inspire others through genuine accomplishment.",
+      strengths: ["Ambition", "Efficiency", "Adaptability", "Charisma", "Goal-orientation"],
+      challenges: ["Workaholism", "Image-consciousness", "Competitiveness", "Difficulty with vulnerability"],
+      growth: "Slow down and connect with who you truly are beneath the achievements. Your worth isn't your productivity. Authentic connection matters more than impressive performance.",
+      famous: [
+        { name: "Oprah Winfrey", note: "Achievement meets authenticity" },
+        { name: "Taylor Swift", note: "Driven excellence in artistry" },
+        { name: "Tony Robbins", note: "Motivational achievement" },
+        { name: "Dwayne Johnson", note: "Relentless work ethic" }
+      ]
+    },
+    4: { name: "The Individualist", subtitle: "Expressive, Dramatic, Self-Absorbed",
+      description: "You are driven by the need to be unique and authentic. Fours are self-aware, sensitive, and emotionally honest. You have a rich inner life and create meaning through personal expression. At your best, you are profoundly creative, inspired, and able to transform pain into beauty.",
+      strengths: ["Creativity", "Emotional depth", "Authenticity", "Aesthetic sensitivity", "Introspection"],
+      challenges: ["Melancholy", "Envy", "Self-absorption", "Feeling misunderstood", "Emotional volatility"],
+      growth: "Practice gratitude for what you have rather than longing for what's missing. Your ordinariness is also beautiful. Not every emotion needs to be explored to its depths.",
+      famous: [
+        { name: "Frida Kahlo", note: "Pain transformed to art" },
+        { name: "Prince", note: "Radical creative individuality" },
+        { name: "Amy Winehouse", note: "Raw emotional authenticity" },
+        { name: "Edgar Allan Poe", note: "Depth and darkness in creativity" }
+      ]
+    },
+    5: { name: "The Investigator", subtitle: "Perceptive, Innovative, Secretive",
+      description: "You are driven by the need to understand and be competent. Fives are alert, insightful, and curious. You observe the world from a distance, gathering knowledge before engaging. At your best, you are visionary pioneers who see the world in entirely new ways.",
+      strengths: ["Analytical thinking", "Independence", "Innovation", "Objectivity", "Deep expertise"],
+      challenges: ["Isolation", "Emotional detachment", "Hoarding energy/resources", "Over-thinking", "Social withdrawal"],
+      growth: "Step out of your mind and into your body and relationships. Knowledge alone isn't safety. Sharing yourself with others enriches rather than depletes you.",
+      famous: [
+        { name: "Albert Einstein", note: "Revolutionary analytical mind" },
+        { name: "Bill Gates", note: "Knowledge-driven innovation" },
+        { name: "Jane Goodall", note: "Patient observation and insight" },
+        { name: "Stephen Hawking", note: "Intellectual mastery" }
+      ]
+    },
+    6: { name: "The Loyalist", subtitle: "Engaging, Responsible, Anxious",
+      description: "You are driven by the need for security and support. Sixes are reliable, hardworking, and responsible. You anticipate problems and work to create safety for yourself and others. At your best, you are courageous, internally stable, and fiercely loyal to those you trust.",
+      strengths: ["Loyalty", "Responsibility", "Troubleshooting", "Courage under pressure", "Community-building"],
+      challenges: ["Anxiety", "Suspicion", "Indecisiveness", "Worst-case thinking", "Authority issues"],
+      growth: "Trust yourself more. Not every scenario needs a contingency plan. Your inner guidance is more reliable than you think. Courage isn't the absence of fear — it's acting despite it.",
+      famous: [
+        { name: "Tom Hanks", note: "Reliable, everyman warmth" },
+        { name: "Ellen DeGeneres", note: "Loyalty with humor" },
+        { name: "Princess Diana", note: "Courage despite vulnerability" },
+        { name: "Mark Twain", note: "Questioning authority with wit" }
+      ]
+    },
+    7: { name: "The Enthusiast", subtitle: "Spontaneous, Versatile, Scattered",
+      description: "You are driven by the need to be happy and avoid pain. Sevens are extroverted, optimistic, and versatile. You seek new experiences and possibilities with infectious enthusiasm. At your best, you are focused, grateful, and able to find profound joy in the present moment.",
+      strengths: ["Optimism", "Versatility", "Quick-thinking", "Enthusiasm", "Resilience"],
+      challenges: ["Impulsivity", "Commitment avoidance", "Superficiality", "Escapism", "FOMO"],
+      growth: "Sit with discomfort instead of running from it. Depth comes from staying, not seeking. The present moment contains more richness than any future plan.",
+      famous: [
+        { name: "Robin Williams", note: "Boundless creative energy" },
+        { name: "Richard Branson", note: "Adventurous entrepreneurship" },
+        { name: "Jim Carrey", note: "Exuberant versatility" },
+        { name: "Amelia Earhart", note: "Fearless exploration" }
+      ]
+    },
+    8: { name: "The Challenger", subtitle: "Powerful, Dominating, Self-Confident",
+      description: "You are driven by the need to be strong and in control. Eights are self-confident, decisive, and willful. You protect the vulnerable and challenge injustice with formidable energy. At your best, you are magnanimous, using your strength to champion others and create positive change.",
+      strengths: ["Decisiveness", "Confidence", "Protectiveness", "Directness", "Natural leadership"],
+      challenges: ["Confrontation", "Control issues", "Vulnerability avoidance", "Intimidation", "Excess"],
+      growth: "Vulnerability is not weakness — it's your greatest strength waiting to be unlocked. Letting others in doesn't mean losing control. Tenderness is its own kind of power.",
+      famous: [
+        { name: "Martin Luther King Jr.", note: "Powerful justice advocacy" },
+        { name: "Serena Williams", note: "Fierce competitive drive" },
+        { name: "Winston Churchill", note: "Indomitable will" },
+        { name: "Pink", note: "Bold authenticity" }
+      ]
+    },
+    9: { name: "The Peacemaker", subtitle: "Receptive, Reassuring, Agreeable",
+      description: "You are driven by the need for inner and outer peace. Nines are accepting, trusting, and stable. You see all perspectives and create harmony wherever you go. At your best, you are an indomitable force for peace, bringing people together and healing divisions.",
+      strengths: ["Mediation", "Acceptance", "Patience", "Seeing all perspectives", "Calming presence"],
+      challenges: ["Complacency", "Conflict avoidance", "Passivity", "Self-forgetting", "Stubbornness"],
+      growth: "Your voice matters — use it. Conflict isn't destruction; it's how relationships grow. Wake up to your own desires and pursue them with the same energy you give to keeping peace.",
+      famous: [
+        { name: "Barack Obama", note: "Calm, unifying presence" },
+        { name: "Marie Kondo", note: "Peaceful harmonizing" },
+        { name: "Keanu Reeves", note: "Gentle strength" },
+        { name: "Carl Jung", note: "Integration of all parts" }
+      ]
+    }
+  },
+  vi: {
+    1: { name: "Người Cải Cách", subtitle: "Có Nguyên Tắc, Có Mục Đích, Tự Chủ",
+      description: "Bạn được thúc đẩy bởi ý thức sâu sắc về đúng sai. Người loại Một có lương tâm, đạo đức và ý thức mạnh mẽ về mục đích. Bạn phấn đấu vì sự chính trực và sợ bị tha hóa hay khiếm khuyết. Khi ở trạng thái tốt nhất, bạn thông thái, sáng suốt, thực tế và cao thượng.",
+      strengths: ["Chính trực", "Trách nhiệm", "Chú ý chi tiết", "Công bằng", "Kỷ luật tự giác"],
+      challenges: ["Cầu toàn", "Tự chỉ trích", "Cứng nhắc", "Bất bình khi người khác không đạt chuẩn"],
+      growth: "Hãy học cách chấp nhận sự không hoàn hảo. Thực hành lòng tự bi và nhận ra rằng sai lầm là một phần của con người. Tiếng nói phê phán bên trong bạn không phải lúc nào cũng đúng.",
+      famous: [
+        { name: "Mahatma Gandhi", note: "Hiện thân của cải cách có nguyên tắc" },
+        { name: "Michelle Obama", note: "Lãnh đạo dựa trên sự chính trực" },
+        { name: "Martha Stewart", note: "Sự cầu toàn được kênh hóa hiệu quả" },
+        { name: "Brené Brown", note: "Người ủng hộ sự dễ tổn thương có nguyên tắc" }
+      ]
+    },
+    2: { name: "Người Giúp Đỡ", subtitle: "Hào Phóng, Biểu Cảm, Chiều Lòng Người",
+      description: "Bạn được thúc đẩy bởi nhu cầu được yêu thương và cần thiết. Người loại Hai đồng cảm, chân thành và ấm áp. Bạn luôn hết mình giúp đỡ người khác, đôi khi bỏ quên nhu cầu của chính mình. Khi ở trạng thái tốt nhất, bạn thực sự vị tha, yêu thương vô điều kiện.",
+      strengths: ["Đồng cảm", "Hào phóng", "Ấm áp", "Nhận thức giữa người với người", "Hỗ trợ"],
+      challenges: ["Chiều lòng người", "Khó đặt ranh giới", "Kìm nén nhu cầu bản thân", "Chiếm hữu"],
+      growth: "Hãy học cách cho bản thân trước. Nhận ra rằng giá trị của bạn không được quyết định bởi bạn làm được bao nhiêu cho người khác. Ranh giới lành mạnh là hành động của tình yêu, không phải ích kỷ.",
+      famous: [
+        { name: "Mẹ Teresa", note: "Hiện thân của sự phục vụ vô tư" },
+        { name: "Dolly Parton", note: "Tinh thần hào phóng và ấm áp" },
+        { name: "Desmond Tutu", note: "Lãnh đạo nhân ái" },
+        { name: "Mr. Rogers", note: "Sự quan tâm tích cực vô điều kiện" }
+      ]
+    },
+    3: { name: "Người Thành Đạt", subtitle: "Thích Nghi, Xuất Sắc, Quyết Tâm",
+      description: "Bạn được thúc đẩy bởi nhu cầu thành công và được ngưỡng mộ. Người loại Ba tham vọng, có năng lực và đầy năng lượng. Bạn xuất sắc trong việc thích nghi để đạt mục tiêu và có sức hút lớn. Khi ở trạng thái tốt nhất, bạn chân thực, tự chấp nhận và truyền cảm hứng cho người khác.",
+      strengths: ["Tham vọng", "Hiệu quả", "Khả năng thích nghi", "Sức hút", "Định hướng mục tiêu"],
+      challenges: ["Nghiện công việc", "Quá quan tâm hình ảnh", "Cạnh tranh", "Khó bộc lộ cảm xúc"],
+      growth: "Hãy chậm lại và kết nối với con người thật bên dưới những thành tựu. Giá trị của bạn không phải năng suất. Kết nối chân thực quan trọng hơn biểu diễn ấn tượng.",
+      famous: [
+        { name: "Oprah Winfrey", note: "Thành tựu gặp gỡ sự chân thực" },
+        { name: "Taylor Swift", note: "Sự xuất sắc được thúc đẩy trong nghệ thuật" },
+        { name: "Tony Robbins", note: "Thành tựu truyền cảm hứng" },
+        { name: "Dwayne Johnson", note: "Đạo đức làm việc không ngừng" }
+      ]
+    },
+    4: { name: "Người Cá Tính", subtitle: "Biểu Cảm, Kịch Tính, Tự Mê",
+      description: "Bạn được thúc đẩy bởi nhu cầu trở nên độc đáo và chân thực. Người loại Bốn tự nhận thức, nhạy cảm và trung thực về cảm xúc. Bạn có đời sống nội tâm phong phú và tạo ý nghĩa qua sự thể hiện cá nhân. Khi ở trạng thái tốt nhất, bạn vô cùng sáng tạo và biến nỗi đau thành cái đẹp.",
+      strengths: ["Sáng tạo", "Chiều sâu cảm xúc", "Chân thực", "Nhạy cảm thẩm mỹ", "Nội tâm sâu sắc"],
+      challenges: ["Buồn rầu", "Ghen tị", "Tự mê", "Cảm giác bị hiểu lầm", "Cảm xúc thất thường"],
+      growth: "Hãy thực hành lòng biết ơn cho những gì bạn có thay vì khao khát những gì thiếu vắng. Sự bình thường của bạn cũng đẹp. Không phải mọi cảm xúc đều cần được khám phá đến tận cùng.",
+      famous: [
+        { name: "Frida Kahlo", note: "Nỗi đau biến thành nghệ thuật" },
+        { name: "Prince", note: "Cá tính sáng tạo cấp tiến" },
+        { name: "Amy Winehouse", note: "Sự chân thực cảm xúc thô sơ" },
+        { name: "Edgar Allan Poe", note: "Chiều sâu và bóng tối trong sáng tạo" }
+      ]
+    },
+    5: { name: "Người Nghiên Cứu", subtitle: "Nhạy Bén, Sáng Tạo, Kín Đáo",
+      description: "Bạn được thúc đẩy bởi nhu cầu hiểu biết và có năng lực. Người loại Năm cảnh giác, sáng suốt và tò mò. Bạn quan sát thế giới từ xa, thu thập kiến thức trước khi tham gia. Khi ở trạng thái tốt nhất, bạn là người tiên phong có tầm nhìn, nhìn thế giới theo cách hoàn toàn mới.",
+      strengths: ["Tư duy phân tích", "Độc lập", "Đổi mới", "Khách quan", "Chuyên môn sâu"],
+      challenges: ["Cô lập", "Tách rời cảm xúc", "Tích trữ năng lượng", "Suy nghĩ quá nhiều", "Thu mình"],
+      growth: "Hãy bước ra khỏi tâm trí và bước vào cơ thể và các mối quan hệ. Kiến thức đơn thuần không phải là an toàn. Chia sẻ bản thân với người khác làm phong phú chứ không làm cạn kiệt bạn.",
+      famous: [
+        { name: "Albert Einstein", note: "Trí tuệ phân tích cách mạng" },
+        { name: "Bill Gates", note: "Đổi mới dựa trên tri thức" },
+        { name: "Jane Goodall", note: "Quan sát kiên nhẫn và sáng suốt" },
+        { name: "Stephen Hawking", note: "Làm chủ trí tuệ" }
+      ]
+    },
+    6: { name: "Người Trung Thành", subtitle: "Gắn Kết, Có Trách Nhiệm, Lo Lắng",
+      description: "Bạn được thúc đẩy bởi nhu cầu an toàn và hỗ trợ. Người loại Sáu đáng tin cậy, chăm chỉ và có trách nhiệm. Bạn dự đoán vấn đề và nỗ lực tạo sự an toàn cho bản thân và người khác. Khi ở trạng thái tốt nhất, bạn can đảm, ổn định bên trong và trung thành mãnh liệt.",
+      strengths: ["Trung thành", "Trách nhiệm", "Giải quyết vấn đề", "Can đảm dưới áp lực", "Xây dựng cộng đồng"],
+      challenges: ["Lo lắng", "Nghi ngờ", "Do dự", "Suy nghĩ tiêu cực nhất", "Vấn đề với quyền lực"],
+      growth: "Hãy tin tưởng bản thân nhiều hơn. Không phải mọi tình huống đều cần kế hoạch dự phòng. Sự hướng dẫn bên trong bạn đáng tin cậy hơn bạn nghĩ. Can đảm không phải là vắng mặt nỗi sợ — mà là hành động bất chấp nỗi sợ.",
+      famous: [
+        { name: "Tom Hanks", note: "Sự ấm áp đáng tin cậy" },
+        { name: "Ellen DeGeneres", note: "Trung thành với sự hài hước" },
+        { name: "Công nương Diana", note: "Can đảm dù dễ tổn thương" },
+        { name: "Mark Twain", note: "Thách thức quyền lực bằng trí tuệ" }
+      ]
+    },
+    7: { name: "Người Nhiệt Huyết", subtitle: "Tự Phát, Đa Năng, Phân Tán",
+      description: "Bạn được thúc đẩy bởi nhu cầu hạnh phúc và tránh đau khổ. Người loại Bảy hướng ngoại, lạc quan và đa năng. Bạn tìm kiếm trải nghiệm mới với sự nhiệt tình lan tỏa. Khi ở trạng thái tốt nhất, bạn tập trung, biết ơn và tìm thấy niềm vui sâu sắc trong khoảnh khắc hiện tại.",
+      strengths: ["Lạc quan", "Đa năng", "Tư duy nhanh", "Nhiệt huyết", "Kiên cường"],
+      challenges: ["Bốc đồng", "Tránh cam kết", "Hời hợt", "Trốn tránh thực tế", "Sợ bỏ lỡ"],
+      growth: "Hãy ngồi lại với sự khó chịu thay vì chạy trốn. Chiều sâu đến từ việc ở lại, không phải tìm kiếm. Khoảnh khắc hiện tại chứa đựng nhiều sự phong phú hơn bất kỳ kế hoạch tương lai nào.",
+      famous: [
+        { name: "Robin Williams", note: "Năng lượng sáng tạo vô tận" },
+        { name: "Richard Branson", note: "Tinh thần khởi nghiệp phiêu lưu" },
+        { name: "Jim Carrey", note: "Sự đa năng phấn khích" },
+        { name: "Amelia Earhart", note: "Khám phá không sợ hãi" }
+      ]
+    },
+    8: { name: "Người Thách Thức", subtitle: "Mạnh Mẽ, Thống Trị, Tự Tin",
+      description: "Bạn được thúc đẩy bởi nhu cầu mạnh mẽ và kiểm soát. Người loại Tám tự tin, quyết đoán và có ý chí mạnh. Bạn bảo vệ người yếu thế và thách thức bất công với năng lượng mạnh mẽ. Khi ở trạng thái tốt nhất, bạn hào phóng, dùng sức mạnh để bảo vệ người khác và tạo thay đổi tích cực.",
+      strengths: ["Quyết đoán", "Tự tin", "Bảo vệ", "Thẳng thắn", "Lãnh đạo bẩm sinh"],
+      challenges: ["Đối đầu", "Vấn đề kiểm soát", "Tránh tổn thương", "Đe dọa", "Thái quá"],
+      growth: "Sự tổn thương không phải là yếu đuối — đó là sức mạnh lớn nhất đang chờ được giải phóng. Cho người khác vào đời bạn không có nghĩa là mất kiểm soát. Sự dịu dàng là một loại sức mạnh riêng.",
+      famous: [
+        { name: "Martin Luther King Jr.", note: "Vận động công lý mạnh mẽ" },
+        { name: "Serena Williams", note: "Tinh thần cạnh tranh mãnh liệt" },
+        { name: "Winston Churchill", note: "Ý chí bất khuất" },
+        { name: "Pink", note: "Sự chân thực táo bạo" }
+      ]
+    },
+    9: { name: "Người Hòa Giải", subtitle: "Tiếp Nhận, Trấn An, Dễ Chịu",
+      description: "Bạn được thúc đẩy bởi nhu cầu bình yên bên trong và bên ngoài. Người loại Chín chấp nhận, tin tưởng và ổn định. Bạn nhìn thấy mọi quan điểm và tạo sự hài hòa bất cứ đâu. Khi ở trạng thái tốt nhất, bạn là lực lượng bất khuất vì hòa bình, gắn kết mọi người và chữa lành chia rẽ.",
+      strengths: ["Hòa giải", "Chấp nhận", "Kiên nhẫn", "Nhìn mọi quan điểm", "Sự hiện diện bình tĩnh"],
+      challenges: ["Tự mãn", "Tránh xung đột", "Thụ động", "Quên bản thân", "Bướng bỉnh"],
+      growth: "Tiếng nói của bạn quan trọng — hãy sử dụng nó. Xung đột không phải phá hủy; đó là cách các mối quan hệ phát triển. Hãy thức tỉnh với những khát khao của chính mình và theo đuổi chúng.",
+      famous: [
+        { name: "Barack Obama", note: "Sự hiện diện bình tĩnh, thống nhất" },
+        { name: "Marie Kondo", note: "Hài hòa bình yên" },
+        { name: "Keanu Reeves", note: "Sức mạnh dịu dàng" },
+        { name: "Carl Jung", note: "Tích hợp mọi phần" }
+      ]
+    }
+  }
+};
+
+const TYPE_COLORS = {
+  1: { color: "#2D5A27", accent: "#8BC34A" }, 2: { color: "#8B2252", accent: "#FF6B9D" },
+  3: { color: "#B8860B", accent: "#FFD700" }, 4: { color: "#4A0E4E", accent: "#CE93D8" },
+  5: { color: "#1A237E", accent: "#64B5F6" }, 6: { color: "#004D40", accent: "#4DB6AC" },
+  7: { color: "#E65100", accent: "#FFB74D" }, 8: { color: "#7F0000", accent: "#EF5350" },
+  9: { color: "#37474F", accent: "#90A4AE" },
+};
+
+// ─── Compatibility (bilingual) ───
+const COMPAT_DATA = {
+  en: {
+    "1-1": { r: 3, d: "Shared values but double the inner critic. You'll build something admirable together if you can soften mutual judgment." },
+    "1-2": { r: 4, d: "A complementary match — the Two softens the One's rigidity while the One grounds the Two's emotionality. Beautiful when balanced." },
+    "1-3": { r: 3, d: "Both driven and goal-oriented. Risk of becoming all work and no play. Must prioritize emotional connection over achievement." },
+    "1-4": { r: 3, d: "The One brings structure to the Four's chaos; the Four brings depth to the One's rigidity. Magnetic but challenging." },
+    "1-5": { r: 4, d: "Intellectual respect runs deep. Both value competence and integrity. May struggle with emotional expression but build lasting trust." },
+    "1-6": { r: 4, d: "A stable, loyal pairing. Both value responsibility and doing the right thing. Can become anxious together — remember to have fun." },
+    "1-7": { r: 3, d: "Opposites attract: the Seven loosens the One up while the One gives the Seven focus. Tension between discipline and freedom." },
+    "1-8": { r: 3, d: "Two strong wills collide. Both want justice but disagree on methods. Passionate when aligned, explosive when not." },
+    "1-9": { r: 5, d: "One of the most natural pairings. The Nine's acceptance soothes the One's critic. The One motivates the Nine. Deeply harmonious." },
+    "2-2": { r: 3, d: "Oceans of warmth but who takes care of whom? Must learn to receive, not just give. Can become codependent without awareness." },
+    "2-3": { r: 4, d: "The power couple. The Two supports the Three's ambitions; the Three gives the Two a sense of shared success." },
+    "2-4": { r: 3, d: "Emotionally intense and deeply felt. The Two nurtures the Four's wounds; the Four gives the Two depth. Can become an emotional rollercoaster." },
+    "2-5": { r: 2, d: "Challenging but growth-inducing. The Two wants closeness; the Five needs space. A masterclass in balancing intimacy and independence." },
+    "2-6": { r: 4, d: "Warm and secure. Both value loyalty and relationships above all. The Two reassures the Six; the Six's steadiness grounds the Two." },
+    "2-7": { r: 4, d: "Fun, warm, and socially vibrant. The Two brings emotional depth; the Seven brings joy and adventure. A genuinely happy pairing." },
+    "2-8": { r: 4, d: "Surprisingly powerful. The Two is one of the few types that can soften the Eight. Both are passionate and protective. Intense love." },
+    "2-9": { r: 4, d: "Gentle, caring, and harmonious. Both prioritize others' needs — must ensure both voices are heard. Sweet and supportive." },
+    "3-3": { r: 3, d: "A dazzling duo on paper. Risk of competing rather than connecting. Must create space for vulnerability beneath the polish." },
+    "3-4": { r: 3, d: "The Three admires the Four's depth; the Four admires the Three's polish. Tension between authenticity and image." },
+    "3-5": { r: 3, d: "Both competent and independent. The Three brings social energy; the Five brings intellectual depth. May struggle to find emotional middle ground." },
+    "3-6": { r: 3, d: "Hardworking and committed. The Three provides confidence; the Six provides loyalty. Must not let anxiety and ambition override connection." },
+    "3-7": { r: 4, d: "Dynamic and energizing. Both optimistic and future-focused. Life is an adventure together. Ground the relationship in emotional honesty." },
+    "3-8": { r: 4, d: "A powerhouse pairing. Both confident and action-oriented. Mutual respect runs deep. Must allow vulnerability beneath the strength." },
+    "3-9": { r: 3, d: "The Nine supports the Three's goals peacefully. The Three energizes the Nine. Risk of the Nine disappearing into the Three's world." },
+    "4-4": { r: 2, d: "Profoundly deep but emotionally turbulent. Two oceans of feeling. Extraordinary creative synergy when stable, stormy when not." },
+    "4-5": { r: 4, d: "Two introspective souls who respect each other's inner world. The Four brings emotion; the Five brings logic. A quiet, rich bond." },
+    "4-6": { r: 3, d: "Both anxious in different ways. The Six seeks security; the Four seeks meaning. Can create a beautiful refuge together if trust is built." },
+    "4-7": { r: 2, d: "Opposites in emotional approach. The Four dives deep; the Seven stays light. Can balance each other or frustrate each other endlessly." },
+    "4-8": { r: 3, d: "Intense and passionate. The Eight's strength protects the Four's sensitivity. The Four gives the Eight emotional permission. Fireworks." },
+    "4-9": { r: 4, d: "The Nine's calm steadiness is a balm for the Four's turbulence. The Four gives the Nine emotional color. Gentle and creative together." },
+    "5-5": { r: 3, d: "Two minds in parallel but perhaps two separate worlds. Intellectual paradise. Must consciously build emotional bridges." },
+    "5-6": { r: 4, d: "Both thoughtful and analytical. The Six brings warmth and loyalty; the Five brings calm expertise. A steady, cerebral partnership." },
+    "5-7": { r: 3, d: "The Five thinks deeply; the Seven thinks broadly. Fascinating intellectual chemistry. Must balance introversion with adventure." },
+    "5-8": { r: 3, d: "Mutual respect for competence and autonomy. The Eight protects; the Five enlightens. Power struggles possible but rare." },
+    "5-9": { r: 4, d: "Peaceful, undemanding, and respectful. Both need space and give it freely. Must ensure the relationship doesn't become too quiet." },
+    "6-6": { r: 3, d: "Double the loyalty, double the worry. An incredibly committed pair. Must actively choose trust and adventure over shared anxiety." },
+    "6-7": { r: 4, d: "The Seven reassures the Six with optimism; the Six grounds the Seven with realism. Balances each other beautifully when healthy." },
+    "6-8": { r: 4, d: "The Eight's confidence calms the Six's anxiety. The Six's loyalty earns the Eight's rare trust. A strong, protective partnership." },
+    "6-9": { r: 4, d: "Both seek peace and security. The Six provides vigilance; the Nine provides calm. A steady, reliable, and deeply comfortable bond." },
+    "7-7": { r: 3, d: "Life is a party — until it's not. Incredible fun and adventure but must learn to sit with difficult emotions together." },
+    "7-8": { r: 4, d: "Big energy, big life. Both action-oriented and larger than life. An exciting, passionate match. Must make space for quiet vulnerability." },
+    "7-9": { r: 4, d: "The Nine's calm grounds the Seven's restlessness. The Seven's energy awakens the Nine. An easygoing, pleasant partnership." },
+    "8-8": { r: 3, d: "Two forces of nature. Explosive passion or explosive conflict — sometimes both. Mutual respect is key. Never boring." },
+    "8-9": { r: 5, d: "One of the best pairings. The Nine softens the Eight's intensity. The Eight mobilizes the Nine. Yin and yang in love." },
+    "9-9": { r: 3, d: "Pure peace and acceptance. Risk of stagnation and unexpressed needs. Must actively pursue growth and honest communication." }
+  },
+  vi: {
+    "1-1": { r: 3, d: "Chung giá trị nhưng gấp đôi sự tự phê phán. Hai bạn sẽ xây dựng điều đáng ngưỡng mộ nếu có thể giảm bớt phán xét lẫn nhau." },
+    "1-2": { r: 4, d: "Sự bổ sung tuyệt vời — Hai làm mềm sự cứng nhắc của Một, Một giữ vững cảm xúc của Hai. Đẹp khi cân bằng." },
+    "1-3": { r: 3, d: "Cả hai đều quyết tâm và hướng mục tiêu. Nguy cơ chỉ có công việc mà không có niềm vui. Cần ưu tiên kết nối cảm xúc." },
+    "1-4": { r: 3, d: "Một mang cấu trúc cho sự hỗn loạn của Bốn; Bốn mang chiều sâu cho sự cứng nhắc của Một. Hút nhau nhưng thách thức." },
+    "1-5": { r: 4, d: "Sự tôn trọng trí tuệ sâu sắc. Cả hai đều coi trọng năng lực và chính trực. Có thể khó biểu đạt cảm xúc nhưng xây dựng lòng tin bền vững." },
+    "1-6": { r: 4, d: "Cặp đôi ổn định, trung thành. Cả hai đều coi trọng trách nhiệm và làm điều đúng. Có thể cùng lo lắng — hãy nhớ vui chơi." },
+    "1-7": { r: 3, d: "Đối lập hút nhau: Bảy giúp Một thả lỏng, Một giúp Bảy tập trung. Căng thẳng giữa kỷ luật và tự do." },
+    "1-8": { r: 3, d: "Hai ý chí mạnh va chạm. Cả hai muốn công lý nhưng bất đồng về phương pháp. Đam mê khi đồng thuận, bùng nổ khi không." },
+    "1-9": { r: 5, d: "Một trong những cặp tự nhiên nhất. Sự chấp nhận của Chín xoa dịu phê phán của Một. Một thúc đẩy Chín. Hài hòa sâu sắc." },
+    "2-2": { r: 3, d: "Biển ấm áp nhưng ai chăm sóc ai? Phải học cách nhận, không chỉ cho. Có thể trở nên phụ thuộc lẫn nhau." },
+    "2-3": { r: 4, d: "Cặp đôi quyền lực. Hai hỗ trợ tham vọng của Ba; Ba mang lại cảm giác thành công chung cho Hai." },
+    "2-4": { r: 3, d: "Cảm xúc mãnh liệt và sâu sắc. Hai nuôi dưỡng vết thương của Bốn; Bốn mang chiều sâu cho Hai. Có thể như tàu lượn cảm xúc." },
+    "2-5": { r: 2, d: "Thách thức nhưng thúc đẩy phát triển. Hai muốn gần gũi; Năm cần không gian. Bài học về cân bằng thân mật và độc lập." },
+    "2-6": { r: 4, d: "Ấm áp và an toàn. Cả hai đều coi trọng lòng trung thành và mối quan hệ. Hai trấn an Sáu; sự vững vàng của Sáu giữ ổn Hai." },
+    "2-7": { r: 4, d: "Vui vẻ, ấm áp và sôi nổi xã hội. Hai mang chiều sâu cảm xúc; Bảy mang niềm vui và phiêu lưu. Cặp đôi thực sự hạnh phúc." },
+    "2-8": { r: 4, d: "Mạnh mẽ đáng ngạc nhiên. Hai là một trong ít loại có thể làm mềm Tám. Cả hai đều đam mê và bảo vệ. Tình yêu mãnh liệt." },
+    "2-9": { r: 4, d: "Nhẹ nhàng, quan tâm và hài hòa. Cả hai đều ưu tiên nhu cầu người khác — cần đảm bảo cả hai tiếng nói được lắng nghe." },
+    "3-3": { r: 3, d: "Cặp đôi lấp lánh trên giấy. Nguy cơ cạnh tranh thay vì kết nối. Cần tạo không gian cho sự tổn thương bên dưới vẻ bóng bẩy." },
+    "3-4": { r: 3, d: "Ba ngưỡng mộ chiều sâu của Bốn; Bốn ngưỡng mộ sự bóng bẩy của Ba. Căng thẳng giữa chân thực và hình ảnh." },
+    "3-5": { r: 3, d: "Cả hai đều có năng lực và độc lập. Ba mang năng lượng xã hội; Năm mang chiều sâu trí tuệ. Có thể khó tìm điểm chung cảm xúc." },
+    "3-6": { r: 3, d: "Chăm chỉ và cam kết. Ba cung cấp sự tự tin; Sáu cung cấp lòng trung thành. Đừng để lo lắng và tham vọng lấn át kết nối." },
+    "3-7": { r: 4, d: "Năng động và đầy năng lượng. Cả hai lạc quan và hướng tới tương lai. Cuộc sống là cuộc phiêu lưu cùng nhau." },
+    "3-8": { r: 4, d: "Cặp đôi siêu mạnh. Cả hai tự tin và hành động. Sự tôn trọng lẫn nhau sâu sắc. Cần cho phép sự tổn thương bên dưới sức mạnh." },
+    "3-9": { r: 3, d: "Chín hỗ trợ mục tiêu của Ba một cách bình yên. Ba tiếp năng lượng cho Chín. Nguy cơ Chín biến mất trong thế giới của Ba." },
+    "4-4": { r: 2, d: "Sâu sắc nhưng cảm xúc hỗn loạn. Hai đại dương cảm xúc. Sức mạnh sáng tạo phi thường khi ổn định, bão tố khi không." },
+    "4-5": { r: 4, d: "Hai tâm hồn nội tâm tôn trọng thế giới bên trong của nhau. Bốn mang cảm xúc; Năm mang logic. Mối duyên yên tĩnh, phong phú." },
+    "4-6": { r: 3, d: "Cả hai lo lắng theo cách khác nhau. Sáu tìm an toàn; Bốn tìm ý nghĩa. Có thể tạo nơi trú ẩn đẹp nếu xây dựng được lòng tin." },
+    "4-7": { r: 2, d: "Đối lập trong cách tiếp cận cảm xúc. Bốn lặn sâu; Bảy giữ nhẹ nhàng. Có thể cân bằng hoặc làm thất vọng nhau liên tục." },
+    "4-8": { r: 3, d: "Mãnh liệt và đam mê. Sức mạnh của Tám bảo vệ sự nhạy cảm của Bốn. Bốn cho Tám sự cho phép cảm xúc. Pháo hoa." },
+    "4-9": { r: 4, d: "Sự bình tĩnh vững vàng của Chín là dược phẩm cho sóng gió của Bốn. Bốn cho Chín màu sắc cảm xúc. Nhẹ nhàng và sáng tạo cùng nhau." },
+    "5-5": { r: 3, d: "Hai trí tuệ song song nhưng có thể là hai thế giới riêng. Thiên đường trí tuệ. Phải chủ động xây cầu cảm xúc." },
+    "5-6": { r: 4, d: "Cả hai đều chu đáo và phân tích. Sáu mang sự ấm áp và trung thành; Năm mang chuyên môn bình tĩnh. Mối quan hệ ổn định, lý trí." },
+    "5-7": { r: 3, d: "Năm suy nghĩ sâu; Bảy suy nghĩ rộng. Hóa học trí tuệ hấp dẫn. Cần cân bằng hướng nội với phiêu lưu." },
+    "5-8": { r: 3, d: "Tôn trọng lẫn nhau về năng lực và tự chủ. Tám bảo vệ; Năm soi sáng. Tranh giành quyền lực có thể xảy ra nhưng hiếm." },
+    "5-9": { r: 4, d: "Bình yên, không đòi hỏi và tôn trọng. Cả hai đều cần không gian và cho nhau tự do. Cần đảm bảo mối quan hệ không quá yên tĩnh." },
+    "6-6": { r: 3, d: "Gấp đôi trung thành, gấp đôi lo lắng. Cặp đôi cam kết đáng kinh ngạc. Phải chọn tin tưởng và phiêu lưu thay vì lo lắng chung." },
+    "6-7": { r: 4, d: "Bảy trấn an Sáu bằng sự lạc quan; Sáu giữ Bảy bằng thực tế. Cân bằng nhau tuyệt đẹp khi lành mạnh." },
+    "6-8": { r: 4, d: "Sự tự tin của Tám xoa dịu lo lắng của Sáu. Lòng trung thành của Sáu giành được niềm tin hiếm có của Tám. Mối quan hệ mạnh mẽ, bảo vệ." },
+    "6-9": { r: 4, d: "Cả hai đều tìm kiếm bình yên và an toàn. Sáu mang sự cảnh giác; Chín mang sự bình tĩnh. Mối duyên ổn định, đáng tin cậy và thoải mái." },
+    "7-7": { r: 3, d: "Cuộc sống là bữa tiệc — cho đến khi không phải. Vui vẻ và phiêu lưu đáng kinh ngạc nhưng phải học cách đối mặt cảm xúc khó khăn cùng nhau." },
+    "7-8": { r: 4, d: "Năng lượng lớn, cuộc sống lớn. Cả hai hành động và hơn cả cuộc đời. Cặp đôi thú vị, đam mê. Cần dành không gian cho sự tổn thương." },
+    "7-9": { r: 4, d: "Sự bình tĩnh của Chín giữ vững sự bồn chồn của Bảy. Năng lượng của Bảy đánh thức Chín. Mối quan hệ dễ chịu, thoải mái." },
+    "8-8": { r: 3, d: "Hai sức mạnh tự nhiên. Đam mê bùng nổ hoặc xung đột bùng nổ — đôi khi cả hai. Tôn trọng lẫn nhau là chìa khóa. Không bao giờ nhàm chán." },
+    "8-9": { r: 5, d: "Một trong những cặp tốt nhất. Chín làm mềm cường độ của Tám. Tám huy động Chín. Âm dương trong tình yêu." },
+    "9-9": { r: 3, d: "Bình yên và chấp nhận thuần khiết. Nguy cơ trì trệ và nhu cầu không được bày tỏ. Phải chủ động theo đuổi phát triển và giao tiếp trung thực." }
+  }
+};
+
+// ─── Questions (bilingual) ───
+const QUESTIONS_DATA = {
+  en: [
+    "I hold myself to very high standards and get frustrated when I fall short.",
+    "I notice errors and imperfections that others seem to overlook.",
+    "I have a strong inner voice telling me what I should and shouldn't do.",
+    "I believe there is a right way to do most things.",
+    "I feel responsible for improving the world around me.",
+    "I suppress my anger because I believe it's wrong to express it.",
+    "I am very organized and like things to be orderly.",
+    "I feel guilty when I relax or take time for pleasure.",
+    "People describe me as principled and ethical.",
+    "I get resentful when others don't follow the rules.",
+    "I struggle to say no because I want to be helpful.",
+    "I know what other people need, sometimes before they do.",
+    "I feel best about myself when I'm helping someone.",
+    "I give compliments and encouragement freely.",
+    "I sometimes feel taken for granted by the people I help.",
+    "I adapt my personality to connect with different people.",
+    "I have trouble identifying my own needs and desires.",
+    "I feel hurt when my efforts aren't acknowledged.",
+    "I go out of my way to make others feel special.",
+    "I sometimes help others as a way to feel indispensable.",
+    "People come to me when they need emotional support.",
+    "I tend to put others' needs before my own.",
+    "I feel a strong need to be seen as successful.",
+    "I am very image-conscious and aware of how others perceive me.",
+    "I set ambitious goals and usually achieve them.",
+    "I can adapt my presentation to any audience or situation.",
+    "I measure my worth by my accomplishments.",
+    "I find it hard to slow down — there's always something to do.",
+    "I'm competitive, even in situations that don't call for it.",
+    "I sometimes lose touch with my true feelings in pursuit of goals.",
+    "I want to be the best at whatever I do.",
+    "I'm good at motivating others and leading teams.",
+    "Failure feels like a personal identity crisis to me.",
+    "I often compare myself to others to see how I measure up.",
+    "I feel fundamentally different from other people.",
+    "I am drawn to what is intense, beautiful, and meaningful.",
+    "I experience emotions more deeply than most people around me.",
+    "I often feel that something essential is missing from my life.",
+    "I express myself through creative or artistic outlets.",
+    "I tend to dwell on my feelings and analyze them deeply.",
+    "I sometimes envy what others have — their ease, happiness, or normalcy.",
+    "Authenticity is more important to me than fitting in.",
+    "I withdraw when I feel misunderstood.",
+    "Melancholy feels familiar and sometimes even comforting to me.",
+    "I romanticize the past or fantasize about an ideal future.",
+    "I'd rather be seen as unique than as ordinary.",
+    "I need a lot of time alone to think and recharge.",
+    "I prefer to observe a situation before participating in it.",
+    "I feel drained by too much social interaction.",
+    "I accumulate knowledge and expertise in topics that interest me.",
+    "I detach from emotions to think more clearly.",
+    "I minimize my needs to maintain independence.",
+    "I'd rather figure something out myself than ask for help.",
+    "I feel uncomfortable with emotional demands from others.",
+    "I protect my time and energy carefully.",
+    "I find most small talk unnecessary and draining.",
+    "I tend to compartmentalize my life into separate areas.",
+    "People see me as private or hard to get to know.",
+    "I often imagine worst-case scenarios.",
+    "Trust is something people must earn with me over time.",
+    "I question authority but also seek guidance from trusted sources.",
+    "I am extremely loyal to the people and groups I commit to.",
+    "I second-guess my decisions even after I've made them.",
+    "I scan for potential problems and dangers in new situations.",
+    "I swing between self-doubt and defiant courage.",
+    "Having a backup plan makes me feel safe.",
+    "I test people to see if they're truly trustworthy.",
+    "I feel anxious when things seem too good to be true.",
+    "I project confidence when I'm actually uncertain inside.",
+    "Commitment and reliability are my strongest traits.",
+    "I love having lots of options and possibilities open to me.",
+    "I get bored quickly and always want something new and exciting.",
+    "I reframe negative experiences into positive ones.",
+    "I make plans for future adventures constantly.",
+    "I avoid pain, sadness, and boredom at all costs.",
+    "I'm the person who keeps the energy and spirits high in a group.",
+    "I have many interests and projects going at once.",
+    "I struggle to commit because I don't want to miss out.",
+    "I feel trapped by routine and limitations.",
+    "People describe me as enthusiastic, fun, and spontaneous.",
+    "I use humor to deflect from difficult emotions.",
+    "I'd rather have a good time than dwell on problems.",
+    "I take charge naturally — someone has to lead.",
+    "I respect people who stand up for themselves.",
+    "I am protective of the people I care about.",
+    "I have a hard time showing vulnerability or weakness.",
+    "I confront injustice directly and forcefully.",
+    "I'd rather be respected than liked.",
+    "I know immediately whether I can trust someone.",
+    "I have more energy and intensity than most people.",
+    "I don't back down from confrontation.",
+    "I feel things strongly — anger, passion, protectiveness.",
+    "People see me as intimidating before they know me.",
+    "I believe the strong should protect the weak.",
+    "I go along with what others want to keep the peace.",
+    "I see all sides of an argument and understand each perspective.",
+    "I struggle to know what I really want or feel.",
+    "I avoid conflict even when addressing issues would be healthier.",
+    "I numb out through comfort activities when stressed.",
+    "I merge with others' opinions and energy without realizing it.",
+    "I procrastinate on things that feel overwhelming.",
+    "People describe me as easygoing and calming.",
+    "I have a hard time saying no or asserting my preferences.",
+    "I stubbornly resist being pushed or rushed.",
+    "I find peace in nature, routine, and simple pleasures.",
+    "I minimize my own problems and focus on the positive."
+  ],
+  vi: [
+    "Tôi đặt ra tiêu chuẩn rất cao cho bản thân và thất vọng khi không đạt được.",
+    "Tôi nhận ra lỗi sai và sự không hoàn hảo mà người khác dường như bỏ qua.",
+    "Tôi có tiếng nói nội tâm mạnh mẽ nói cho tôi biết nên và không nên làm gì.",
+    "Tôi tin rằng hầu hết mọi việc đều có cách làm đúng.",
+    "Tôi cảm thấy có trách nhiệm cải thiện thế giới xung quanh mình.",
+    "Tôi kìm nén cơn giận vì tin rằng bày tỏ nó là sai.",
+    "Tôi rất có tổ chức và thích mọi thứ ngăn nắp.",
+    "Tôi cảm thấy tội lỗi khi nghỉ ngơi hoặc dành thời gian cho niềm vui.",
+    "Mọi người mô tả tôi là người có nguyên tắc và đạo đức.",
+    "Tôi bực bội khi người khác không tuân thủ quy tắc.",
+    "Tôi khó nói không vì muốn giúp đỡ mọi người.",
+    "Tôi biết người khác cần gì, đôi khi trước cả họ.",
+    "Tôi cảm thấy tốt nhất về bản thân khi đang giúp đỡ ai đó.",
+    "Tôi thoải mái khen ngợi và khuyến khích người khác.",
+    "Đôi khi tôi cảm thấy bị coi thường bởi những người tôi giúp.",
+    "Tôi điều chỉnh tính cách để kết nối với những người khác nhau.",
+    "Tôi gặp khó khăn trong việc xác định nhu cầu và mong muốn của mình.",
+    "Tôi cảm thấy tổn thương khi nỗ lực của tôi không được ghi nhận.",
+    "Tôi cố gắng hết sức để người khác cảm thấy đặc biệt.",
+    "Đôi khi tôi giúp người khác như một cách để cảm thấy không thể thiếu.",
+    "Mọi người tìm đến tôi khi họ cần hỗ trợ cảm xúc.",
+    "Tôi có xu hướng đặt nhu cầu người khác lên trước nhu cầu của mình.",
+    "Tôi có nhu cầu mạnh mẽ được nhìn nhận là người thành công.",
+    "Tôi rất ý thức về hình ảnh và nhận thức của người khác về mình.",
+    "Tôi đặt mục tiêu tham vọng và thường đạt được chúng.",
+    "Tôi có thể điều chỉnh cách trình bày cho bất kỳ đối tượng hoặc tình huống nào.",
+    "Tôi đo lường giá trị của mình bằng thành tựu.",
+    "Tôi thấy khó chậm lại — luôn có việc gì đó phải làm.",
+    "Tôi hay cạnh tranh, ngay cả trong những tình huống không cần thiết.",
+    "Đôi khi tôi mất kết nối với cảm xúc thật khi theo đuổi mục tiêu.",
+    "Tôi muốn trở thành người giỏi nhất trong bất cứ việc gì tôi làm.",
+    "Tôi giỏi tạo động lực cho người khác và dẫn dắt nhóm.",
+    "Thất bại cảm giác như một cuộc khủng hoảng bản sắc cá nhân.",
+    "Tôi thường so sánh mình với người khác để xem mình ở đâu.",
+    "Tôi cảm thấy mình về cơ bản khác biệt với người khác.",
+    "Tôi bị thu hút bởi những gì mãnh liệt, đẹp đẽ và có ý nghĩa.",
+    "Tôi trải nghiệm cảm xúc sâu sắc hơn hầu hết mọi người xung quanh.",
+    "Tôi thường cảm thấy có điều gì đó thiết yếu đang thiếu vắng trong cuộc sống.",
+    "Tôi thể hiện bản thân qua các hình thức sáng tạo hoặc nghệ thuật.",
+    "Tôi có xu hướng suy ngẫm về cảm xúc và phân tích chúng sâu sắc.",
+    "Đôi khi tôi ghen tị với những gì người khác có — sự dễ dàng, hạnh phúc, hay bình thường của họ.",
+    "Sự chân thực quan trọng với tôi hơn việc hòa nhập.",
+    "Tôi thu mình khi cảm thấy bị hiểu lầm.",
+    "Nỗi buồn cảm thấy quen thuộc và đôi khi còn thoải mái với tôi.",
+    "Tôi lãng mạn hóa quá khứ hoặc mơ tưởng về tương lai lý tưởng.",
+    "Tôi muốn được nhìn nhận là độc đáo hơn là bình thường.",
+    "Tôi cần nhiều thời gian một mình để suy nghĩ và nạp lại năng lượng.",
+    "Tôi thích quan sát tình huống trước khi tham gia.",
+    "Tôi cảm thấy kiệt sức bởi quá nhiều giao tiếp xã hội.",
+    "Tôi tích lũy kiến thức và chuyên môn trong các chủ đề tôi quan tâm.",
+    "Tôi tách rời cảm xúc để suy nghĩ rõ ràng hơn.",
+    "Tôi giảm thiểu nhu cầu của mình để duy trì sự độc lập.",
+    "Tôi muốn tự tìm hiểu hơn là nhờ người khác giúp.",
+    "Tôi cảm thấy không thoải mái với những đòi hỏi cảm xúc từ người khác.",
+    "Tôi bảo vệ thời gian và năng lượng của mình cẩn thận.",
+    "Tôi thấy hầu hết chuyện phiếm là không cần thiết và mệt mỏi.",
+    "Tôi có xu hướng phân chia cuộc sống thành các lĩnh vực riêng biệt.",
+    "Mọi người nhìn tôi là người kín đáo hoặc khó hiểu.",
+    "Tôi thường tưởng tượng ra các kịch bản tồi tệ nhất.",
+    "Niềm tin là thứ mọi người phải kiếm được với tôi theo thời gian.",
+    "Tôi đặt câu hỏi về quyền lực nhưng cũng tìm kiếm sự hướng dẫn từ nguồn đáng tin.",
+    "Tôi cực kỳ trung thành với những người và nhóm tôi cam kết.",
+    "Tôi nghi ngờ quyết định của mình ngay cả sau khi đã đưa ra.",
+    "Tôi quét tìm vấn đề và nguy hiểm tiềm ẩn trong tình huống mới.",
+    "Tôi dao động giữa tự nghi ngờ và sự can đảm thách thức.",
+    "Có kế hoạch dự phòng khiến tôi cảm thấy an toàn.",
+    "Tôi thử thách người khác để xem họ có thật sự đáng tin không.",
+    "Tôi cảm thấy lo lắng khi mọi thứ có vẻ quá tốt để thật.",
+    "Tôi thể hiện sự tự tin khi thực ra bên trong không chắc chắn.",
+    "Cam kết và đáng tin cậy là phẩm chất mạnh nhất của tôi.",
+    "Tôi thích có nhiều lựa chọn và khả năng mở ra trước mắt.",
+    "Tôi chán nhanh và luôn muốn điều gì đó mới mẻ và thú vị.",
+    "Tôi chuyển đổi trải nghiệm tiêu cực thành tích cực.",
+    "Tôi liên tục lên kế hoạch cho những cuộc phiêu lưu tương lai.",
+    "Tôi tránh đau khổ, buồn bã và chán nản bằng mọi giá.",
+    "Tôi là người giữ năng lượng và tinh thần cao trong nhóm.",
+    "Tôi có nhiều sở thích và dự án cùng lúc.",
+    "Tôi khó cam kết vì không muốn bỏ lỡ điều gì.",
+    "Tôi cảm thấy bị giam cầm bởi thói quen và giới hạn.",
+    "Mọi người mô tả tôi là nhiệt huyết, vui vẻ và tự phát.",
+    "Tôi dùng hài hước để né tránh cảm xúc khó khăn.",
+    "Tôi muốn vui vẻ hơn là suy nghĩ về vấn đề.",
+    "Tôi tự nhiên nắm quyền — ai đó phải dẫn dắt.",
+    "Tôi tôn trọng những người đứng lên cho chính mình.",
+    "Tôi bảo vệ những người tôi quan tâm.",
+    "Tôi khó bộc lộ sự tổn thương hoặc yếu đuối.",
+    "Tôi đối đầu với bất công một cách trực tiếp và mạnh mẽ.",
+    "Tôi muốn được tôn trọng hơn là được yêu thích.",
+    "Tôi biết ngay liệu tôi có thể tin tưởng ai đó không.",
+    "Tôi có nhiều năng lượng và cường độ hơn hầu hết mọi người.",
+    "Tôi không lùi bước trước đối đầu.",
+    "Tôi cảm nhận mọi thứ mạnh mẽ — giận dữ, đam mê, bảo vệ.",
+    "Mọi người thấy tôi đáng sợ trước khi họ hiểu tôi.",
+    "Tôi tin rằng người mạnh nên bảo vệ người yếu.",
+    "Tôi chiều theo ý người khác để giữ hòa bình.",
+    "Tôi nhìn thấy mọi mặt của cuộc tranh luận và hiểu từng quan điểm.",
+    "Tôi khó biết mình thực sự muốn gì hoặc cảm thấy gì.",
+    "Tôi tránh xung đột ngay cả khi giải quyết vấn đề sẽ lành mạnh hơn.",
+    "Tôi tê liệt qua các hoạt động thoải mái khi căng thẳng.",
+    "Tôi hòa nhập vào ý kiến và năng lượng người khác mà không nhận ra.",
+    "Tôi trì hoãn những việc cảm thấy quá choáng ngợp.",
+    "Mọi người mô tả tôi là dễ tính và bình tĩnh.",
+    "Tôi khó nói không hoặc khẳng định sở thích của mình.",
+    "Tôi bướng bỉnh chống lại việc bị thúc ép hoặc vội vàng.",
+    "Tôi tìm thấy bình yên trong thiên nhiên, thói quen và niềm vui đơn giản.",
+    "Tôi giảm thiểu vấn đề của mình và tập trung vào mặt tích cực."
+  ]
+};
+
+const Q_TYPES = [1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9];
+
+const SHUFFLE_ORDER = (() => {
+  const arr = Array.from({ length: 108 }, (_, i) => i);
+  let seed = 42;
+  for (let i = arr.length - 1; i > 0; i--) {
+    seed = (seed * 16807 + 0) % 2147483647;
+    const j = seed % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+})();
+
+function getCompat(a, b, lang) {
+  const key = `${Math.min(a, b)}-${Math.max(a, b)}`;
+  return COMPAT_DATA[lang][key] || { r: 3, d: "—" };
+}
+
+const StarRating = ({ rating }) => (
+  <div style={{ display: "flex", gap: 3 }}>
+    {[1, 2, 3, 4, 5].map(i => (
+      <span key={i} style={{ color: i <= rating ? "#FFD700" : "#333", fontSize: 18, filter: i <= rating ? "drop-shadow(0 0 3px rgba(255,215,0,0.5))" : "none" }}>★</span>
+    ))}
+  </div>
+);
+
+const LangToggle = () => {
+  const { lang, setLang } = useLang();
+  return (
+    <button
+      onClick={() => setLang(lang === "en" ? "vi" : "en")}
+      aria-label="Switch language"
+      style={{
+        position: "fixed", top: 14, right: 14, zIndex: 100,
+        display: "flex", alignItems: "center", gap: 6,
+        background: "rgba(20,18,24,0.85)", backdropFilter: "blur(12px)",
+        border: "1px solid rgba(200,180,160,0.15)", borderRadius: 20,
+        padding: "7px 14px", cursor: "pointer", transition: "all 0.25s",
+        fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 1,
+        color: "#c8c0b4"
+      }}
+      onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(200,180,160,0.45)"; e.currentTarget.style.background = "rgba(30,28,34,0.95)"; }}
+      onMouseOut={e => { e.currentTarget.style.borderColor = "rgba(200,180,160,0.15)"; e.currentTarget.style.background = "rgba(20,18,24,0.85)"; }}
+    >
+      <span style={{ fontSize: 15 }}>🌐</span>
+      <span style={{ fontWeight: 500 }}>{lang === "en" ? "VI" : "EN"}</span>
+    </button>
+  );
+};
+
+function EnneagramTest() {
+  const [lang, setLang] = useState("en");
+  const [screen, setScreen] = useState("landing");
+  const [answers, setAnswers] = useState({});
+  const [currentQ, setCurrentQ] = useState(0);
+  const [result, setResult] = useState(null);
+  const [fadeIn, setFadeIn] = useState(true);
+  const [expandedCompat, setExpandedCompat] = useState(null);
+  const resultRef = useRef(null);
+
+  const ui = UI[lang];
+  const totalQ = 108;
+  const progress = (Object.keys(answers).length / totalQ) * 100;
+
+  const getQuestion = (idx) => {
+    const origIdx = SHUFFLE_ORDER[idx];
+    return { text: QUESTIONS_DATA[lang][origIdx], type: Q_TYPES[origIdx] };
+  };
+
+  const handleAnswer = (val) => {
+    setFadeIn(false);
+    setTimeout(() => {
+      setAnswers(prev => ({ ...prev, [currentQ]: val }));
+      if (currentQ < totalQ - 1) setCurrentQ(currentQ + 1);
+      setFadeIn(true);
+    }, 200);
+  };
+
+  const calculateResult = () => {
+    const scores = {};
+    for (let t = 1; t <= 9; t++) scores[t] = 0;
+    Object.entries(answers).forEach(([qIdx, val]) => {
+      const origIdx = SHUFFLE_ORDER[parseInt(qIdx)];
+      scores[Q_TYPES[origIdx]] += val;
+    });
+    const maxScore = Math.max(...Object.values(scores));
+    const winner = parseInt(Object.entries(scores).find(([, v]) => v === maxScore)[0]);
+    const sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]).map(([t, s]) => ({ type: parseInt(t), score: s }));
+    setResult({ type: winner, scores: sortedScores, raw: scores });
+    setScreen("results");
+    setTimeout(() => resultRef.current?.scrollTo(0, 0), 50);
+  };
+
+  const answerVals = [1, 2, 3, 4, 5];
+
+  return (
+    <LangCtx.Provider value={{ lang, setLang }}>
+      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+      <LangToggle />
+
+      {screen === "landing" && (
+        <div style={{
+          minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          background: "linear-gradient(160deg, #0a0a0f 0%, #1a1025 40%, #0d1520 100%)",
+          fontFamily: "'Cormorant Garamond', Georgia, serif", color: "#e8e0d4", padding: 24, textAlign: "center",
+          position: "relative", overflow: "hidden"
+        }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 30% 20%, rgba(120,80,160,0.08) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(60,120,160,0.06) 0%, transparent 50%)" }} />
+          <div style={{ position: "relative", zIndex: 1, maxWidth: 600 }}>
+            <div style={{ fontSize: 72, marginBottom: 8, letterSpacing: -2 }}>◉</div>
+            <h1 style={{ fontSize: "clamp(36px, 6vw, 56px)", fontWeight: 300, margin: "0 0 12px", letterSpacing: -1, lineHeight: 1.1 }}>
+              {lang === "en" ? "The Enneagram" : "Enneagram"}
+            </h1>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, letterSpacing: 4, textTransform: "uppercase", color: "#9a8eb0", marginBottom: 32, fontWeight: 300 }}>
+              {ui.tagline}
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.8, color: "#a09890", maxWidth: 480, margin: "0 auto 40px", fontWeight: 300 }}>
+              {ui.intro}
+            </p>
+            <button onClick={() => setScreen("test")} style={{
+              fontFamily: "'DM Sans', sans-serif", fontSize: 13, letterSpacing: 3, textTransform: "uppercase",
+              padding: "16px 48px", border: "1px solid rgba(200,180,160,0.3)", background: "rgba(200,180,160,0.06)",
+              color: "#e8e0d4", cursor: "pointer", transition: "all 0.3s", borderRadius: 0,
+            }}
+              onMouseOver={e => { e.target.style.background = "rgba(200,180,160,0.15)"; e.target.style.borderColor = "rgba(200,180,160,0.6)"; }}
+              onMouseOut={e => { e.target.style.background = "rgba(200,180,160,0.06)"; e.target.style.borderColor = "rgba(200,180,160,0.3)"; }}
+            >
+              {ui.begin}
+            </button>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#5a5250", marginTop: 20 }}>{ui.duration}</p>
+          </div>
+        </div>
+      )}
+
+      {screen === "test" && (() => {
+        const perPage = 4;
+        const totalPages = Math.ceil(totalQ / perPage);
+        const page = Math.floor(currentQ / perPage);
+        const pageStart = page * perPage;
+        const pageQuestions = Array.from({ length: Math.min(perPage, totalQ - pageStart) }, (_, i) => pageStart + i);
+        const allAnswered = Object.keys(answers).length === totalQ;
+        const pageAllAnswered = pageQuestions.every(qi => answers[qi] !== undefined);
+        return (
+          <div style={{
+            minHeight: "100vh", display: "flex", flexDirection: "column",
+            background: "linear-gradient(160deg, #0a0a0f 0%, #1a1025 40%, #0d1520 100%)",
+            fontFamily: "'DM Sans', sans-serif", color: "#e8e0d4", position: "relative"
+          }}>
+            <div style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(10,10,15,0.9)", backdropFilter: "blur(10px)", padding: "12px 24px", borderBottom: "1px solid rgba(200,180,160,0.08)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: 640, margin: "0 auto" }}>
+                <span style={{ fontSize: 12, color: "#7a7270", letterSpacing: 2 }}>{Object.keys(answers).length} / {totalQ}</span>
+                <span style={{ fontSize: 12, color: "#7a7270", letterSpacing: 1 }}>{lang === "en" ? `Page ${page + 1} of ${totalPages}` : `Trang ${page + 1} / ${totalPages}`}</span>
+                <span style={{ fontSize: 12, color: "#7a7270" }}>{Math.round(progress)}%</span>
+              </div>
+              <div style={{ maxWidth: 640, margin: "8px auto 0", height: 2, background: "rgba(200,180,160,0.1)", borderRadius: 1 }}>
+                <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, #8a7090, #c0a080)", borderRadius: 1, transition: "width 0.4s ease" }} />
+              </div>
+            </div>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "32px 24px 24px" }}>
+              <div style={{ maxWidth: 600, width: "100%", opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(12px)", transition: "all 0.25s ease" }}>
+                {/* Scale legend — shown once at the top */}
+                <div style={{ display: "flex", justifyContent: "space-between", maxWidth: 340, margin: "0 auto 28px", padding: "0 4px" }}>
+                  <span style={{ fontSize: 11, color: "#6a6260", fontWeight: 300 }}>{ui.answers[0]}</span>
+                  <span style={{ fontSize: 11, color: "#6a6260", fontWeight: 300 }}>{ui.answers[2]}</span>
+                  <span style={{ fontSize: 11, color: "#6a6260", fontWeight: 300 }}>{ui.answers[4]}</span>
+                </div>
+
+                {/* Questions */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+                  {pageQuestions.map((qi) => {
+                    const q = getQuestion(qi);
+                    const qAnswer = answers[qi];
+                    return (
+                      <div key={qi} style={{ padding: "20px 24px", border: "1px solid rgba(200,180,160,0.08)", background: qAnswer !== undefined ? "rgba(200,180,160,0.03)" : "transparent", transition: "background 0.3s" }}>
+                        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(17px, 3vw, 21px)", fontWeight: 300, lineHeight: 1.5, color: "#e8e0d4", marginBottom: 18 }}>
+                          <span style={{ color: "#5a5250", fontSize: 13, fontFamily: "'DM Sans'", marginRight: 8 }}>{qi + 1}.</span>
+                          {q.text}
+                        </p>
+                        {/* Horizontal Likert scale */}
+                        <div style={{ display: "flex", alignItems: "center", width: "100%", maxWidth: 340, margin: "0 auto" }}>
+                          <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "0 4px" }}>
+                            <div style={{ position: "absolute", top: "50%", left: 20, right: 20, height: 1, background: "rgba(200,180,160,0.12)", transform: "translateY(-50%)" }} />
+                            {answerVals.map((val, idx) => {
+                              const isSelected = qAnswer === val;
+                              const sizes = [36, 30, 26, 30, 36];
+                              const sz = sizes[idx];
+                              return (
+                                <button key={val} onClick={() => setAnswers(prev => ({ ...prev, [qi]: val }))} style={{
+                                  position: "relative", zIndex: 1, width: sz, height: sz, borderRadius: "50%",
+                                  background: isSelected ? "rgba(192,160,128,0.2)" : "rgba(200,180,160,0.04)",
+                                  border: isSelected ? "2px solid rgba(192,160,128,0.7)" : "1px solid rgba(200,180,160,0.2)",
+                                  color: isSelected ? "#e8e0d4" : "#7a7270",
+                                  cursor: "pointer", transition: "all 0.2s", padding: 0,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  fontFamily: "'DM Sans', sans-serif", fontSize: 11, fontWeight: isSelected ? 500 : 300,
+                                  boxShadow: isSelected ? "0 0 12px rgba(192,160,128,0.25)" : "none",
+                                  flexShrink: 0
+                                }}
+                                  onMouseOver={e => { if (!isSelected) { e.currentTarget.style.background = "rgba(200,180,160,0.1)"; e.currentTarget.style.borderColor = "rgba(200,180,160,0.4)"; }}}
+                                  onMouseOut={e => { if (!isSelected) { e.currentTarget.style.background = "rgba(200,180,160,0.04)"; e.currentTarget.style.borderColor = "rgba(200,180,160,0.2)"; }}}
+                                >
+                                  {isSelected ? "✓" : val}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <div style={{ display: "flex", gap: 16, marginTop: 32, alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
+                <button onClick={() => { if (page > 0) { setFadeIn(false); setTimeout(() => { setCurrentQ((page - 1) * perPage); setFadeIn(true); }, 200); }}} disabled={page === 0}
+                  style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 2, padding: "10px 24px", background: "transparent", border: "1px solid rgba(200,180,160,0.15)", color: page === 0 ? "#3a3230" : "#7a7270", cursor: page === 0 ? "default" : "pointer", textTransform: "uppercase" }}>
+                  {ui.back}
+                </button>
+                {page < totalPages - 1 && pageAllAnswered && (
+                  <button onClick={() => { setFadeIn(false); setTimeout(() => { setCurrentQ((page + 1) * perPage); setFadeIn(true); }, 200); }}
+                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 2, padding: "10px 24px", background: "transparent", border: "1px solid rgba(200,180,160,0.15)", color: "#7a7270", cursor: "pointer", textTransform: "uppercase" }}>
+                    {ui.next}
+                  </button>
+                )}
+                {allAnswered && (
+                  <button onClick={calculateResult}
+                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 3, padding: "12px 32px", background: "rgba(192,160,128,0.15)", border: "1px solid rgba(192,160,128,0.4)", color: "#e8e0d4", cursor: "pointer", textTransform: "uppercase", transition: "all 0.3s" }}
+                    onMouseOver={e => { e.target.style.background = "rgba(192,160,128,0.25)"; }}
+                    onMouseOut={e => { e.target.style.background = "rgba(192,160,128,0.15)"; }}
+                  >
+                    {ui.seeResults}
+                  </button>
+                )}
+              </div>
+              {!allAnswered && Object.keys(answers).length > 0 && (
+                <button onClick={() => {
+                  const first = Array.from({ length: totalQ }, (_, i) => i).find(i => answers[i] === undefined);
+                  if (first !== undefined) { setFadeIn(false); setTimeout(() => { setCurrentQ(Math.floor(first / perPage) * perPage); setFadeIn(true); }, 200); }
+                }}
+                  style={{ marginTop: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6a6260", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3 }}>
+                  {ui.jumpUnanswered(totalQ - Object.keys(answers).length)}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {screen === "results" && result && (() => {
+        const td = TYPES_DATA[lang][result.type];
+        const tc = TYPE_COLORS[result.type];
+        const maxPossible = 12 * 5;
+        return (
+          <div ref={resultRef} style={{
+            minHeight: "100vh",
+            background: "linear-gradient(160deg, #0a0a0f 0%, #1a1025 40%, #0d1520 100%)",
+            fontFamily: "'DM Sans', sans-serif", color: "#e8e0d4", overflowX: "hidden"
+          }}>
+            <div style={{ padding: "60px 24px 48px", textAlign: "center", position: "relative" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at 50% 30%, ${tc.color}22 0%, transparent 60%)` }} />
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <p style={{ fontFamily: "'DM Sans'", fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#7a7270", marginBottom: 16 }}>{ui.yourType}</p>
+                <div style={{ fontSize: 80, fontFamily: "'Cormorant Garamond'", fontWeight: 300, color: tc.accent, lineHeight: 1, marginBottom: 8 }}>{result.type}</div>
+                <h1 style={{ fontFamily: "'Cormorant Garamond'", fontSize: "clamp(32px, 6vw, 48px)", fontWeight: 300, margin: "0 0 8px", letterSpacing: -0.5 }}>{td.name}</h1>
+                <p style={{ fontSize: 14, color: tc.accent, letterSpacing: 1, fontWeight: 300, opacity: 0.8 }}>{td.subtitle}</p>
+              </div>
+            </div>
+
+            <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 24px 60px" }}>
+              <section style={{ marginBottom: 48 }}>
+                <p style={{ fontFamily: "'Cormorant Garamond'", fontSize: 20, lineHeight: 1.8, fontWeight: 300, color: "#c8c0b4" }}>{td.description}</p>
+              </section>
+
+              <section style={{ marginBottom: 48 }}>
+                <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 24, fontWeight: 400, marginBottom: 20, letterSpacing: -0.3 }}>{ui.scoreBreakdown}</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {result.scores.map(({ type: tp, score }) => (
+                    <div key={tp} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ width: 24, fontSize: 13, color: tp === result.type ? tc.accent : "#6a6260", fontWeight: tp === result.type ? 500 : 300, textAlign: "right" }}>{tp}</span>
+                      <div style={{ flex: 1, height: 6, background: "rgba(200,180,160,0.08)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${(score / maxPossible) * 100}%`, background: tp === result.type ? tc.accent : "rgba(200,180,160,0.25)", borderRadius: 3, transition: "width 1s ease" }} />
+                      </div>
+                      <span style={{ fontSize: 12, color: "#6a6260", width: 30, textAlign: "right" }}>{Math.round((score / maxPossible) * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 48 }}>
+                <div style={{ padding: 20, border: "1px solid rgba(200,180,160,0.1)", background: "rgba(200,180,160,0.02)" }}>
+                  <h3 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 18, fontWeight: 400, marginBottom: 12, color: tc.accent }}>{ui.strengths}</h3>
+                  {td.strengths.map((s, i) => <p key={i} style={{ fontSize: 13, color: "#a09890", marginBottom: 6, fontWeight: 300 }}>— {s}</p>)}
+                </div>
+                <div style={{ padding: 20, border: "1px solid rgba(200,180,160,0.1)", background: "rgba(200,180,160,0.02)" }}>
+                  <h3 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 18, fontWeight: 400, marginBottom: 12, color: "#c08070" }}>{ui.challenges}</h3>
+                  {td.challenges.map((s, i) => <p key={i} style={{ fontSize: 13, color: "#a09890", marginBottom: 6, fontWeight: 300 }}>— {s}</p>)}
+                </div>
+              </section>
+
+              <section style={{ marginBottom: 48, padding: 24, borderLeft: `2px solid ${tc.accent}40`, background: "rgba(200,180,160,0.02)" }}>
+                <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 400, marginBottom: 12 }}>{ui.growthTitle}</h2>
+                <p style={{ fontSize: 14, lineHeight: 1.8, color: "#a09890", fontWeight: 300 }}>{td.growth}</p>
+              </section>
+
+              <section style={{ marginBottom: 56 }}>
+                <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 24, fontWeight: 400, marginBottom: 20 }}>{ui.famousTitle(result.type)}</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {td.famous.map((f, i) => (
+                    <div key={i} style={{ padding: 16, border: "1px solid rgba(200,180,160,0.1)", background: "rgba(200,180,160,0.02)" }}>
+                      <p style={{ fontFamily: "'Cormorant Garamond'", fontSize: 18, fontWeight: 500, marginBottom: 4 }}>{f.name}</p>
+                      <p style={{ fontSize: 12, color: "#7a7270", fontWeight: 300, fontStyle: "italic" }}>{f.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section style={{ marginBottom: 48 }}>
+                <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 28, fontWeight: 400, marginBottom: 8, textAlign: "center" }}>{ui.compatTitle}</h2>
+                <p style={{ fontSize: 13, color: "#7a7270", textAlign: "center", marginBottom: 28, fontWeight: 300 }}>{ui.compatSub(result.type)}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[1,2,3,4,5,6,7,8,9].map(other => {
+                    const c = getCompat(result.type, other, lang);
+                    const isExp = expandedCompat === other;
+                    const ot = TYPES_DATA[lang][other];
+                    const otc = TYPE_COLORS[other];
+                    return (
+                      <div key={other} onClick={() => setExpandedCompat(isExp ? null : other)}
+                        style={{ padding: "16px 20px", border: "1px solid rgba(200,180,160,0.1)", background: isExp ? "rgba(200,180,160,0.05)" : "rgba(200,180,160,0.02)", cursor: "pointer", transition: "all 0.2s" }}
+                        onMouseOver={e => { if (!isExp) e.currentTarget.style.background = "rgba(200,180,160,0.04)"; }}
+                        onMouseOut={e => { if (!isExp) e.currentTarget.style.background = "rgba(200,180,160,0.02)"; }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <span style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 300, color: otc.accent, width: 28 }}>{other}</span>
+                            <div>
+                              <span style={{ fontSize: 14, fontWeight: 400 }}>{ot.name}</span>
+                              {other === result.type && <span style={{ fontSize: 10, color: tc.accent, marginLeft: 8, letterSpacing: 1 }}>{ui.sameType}</span>}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <StarRating rating={c.r} />
+                            <span style={{ fontSize: 16, color: "#5a5250", transition: "transform 0.2s", transform: isExp ? "rotate(180deg)" : "rotate(0)" }}>▾</span>
+                          </div>
+                        </div>
+                        {isExp && (
+                          <p style={{ marginTop: 14, fontSize: 13, lineHeight: 1.7, color: "#a09890", fontWeight: 300, borderTop: "1px solid rgba(200,180,160,0.08)", paddingTop: 14 }}>
+                            {c.d}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              <div style={{ textAlign: "center", paddingTop: 20, paddingBottom: 40 }}>
+                <button onClick={() => { setScreen("landing"); setAnswers({}); setCurrentQ(0); setResult(null); setExpandedCompat(null); }}
+                  style={{ fontFamily: "'DM Sans'", fontSize: 12, letterSpacing: 3, textTransform: "uppercase", padding: "14px 40px", background: "transparent", border: "1px solid rgba(200,180,160,0.2)", color: "#7a7270", cursor: "pointer" }}
+                  onMouseOver={e => { e.target.style.borderColor = "rgba(200,180,160,0.5)"; e.target.style.color = "#c8c0b4"; }}
+                  onMouseOut={e => { e.target.style.borderColor = "rgba(200,180,160,0.2)"; e.target.style.color = "#7a7270"; }}
+                >
+                  {ui.retake}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+    </LangCtx.Provider>
+  );
+}
+
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(EnneagramTest));
+  </script>
+</body>
+</html>
