@@ -7,11 +7,12 @@
   <meta name="description" content="Take this free 108-question Enneagram personality test. Available in English and Vietnamese." />
   <meta property="og:title" content="Enneagram Personality Test" />
   <meta property="og:description" content="108 questions to reveal your core personality type and romantic compatibility." />
+  
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #root { min-height: 100vh; }
-    body { background: #0a0a0f; }
+    body { background: #F5F0E8; }
   </style>
 </head>
 <body>
@@ -22,7 +23,8 @@
   <script type="text/babel">
     const { useState, useRef, createContext, useContext } = React;
 
-    // ─── i18n Context ───
+
+// ─── i18n Context ───
 const LangCtx = createContext();
 const useLang = () => useContext(LangCtx);
 
@@ -427,6 +429,7 @@ const QUESTIONS_DATA = {
     "I sometimes help others as a way to feel indispensable.",
     "People come to me when they need emotional support.",
     "I tend to put others' needs before my own.",
+    "I build my identity around being caring and indispensable to others.",
     "I feel a strong need to be seen as successful.",
     "I am very image-conscious and aware of how others perceive me.",
     "I set ambitious goals and usually achieve them.",
@@ -439,6 +442,7 @@ const QUESTIONS_DATA = {
     "I'm good at motivating others and leading teams.",
     "Failure feels like a personal identity crisis to me.",
     "I often compare myself to others to see how I measure up.",
+    "I shape-shift to become whoever the situation requires me to be.",
     "I feel fundamentally different from other people.",
     "I am drawn to what is intense, beautiful, and meaningful.",
     "I experience emotions more deeply than most people around me.",
@@ -535,6 +539,7 @@ const QUESTIONS_DATA = {
     "Đôi khi tôi giúp người khác như một cách để cảm thấy không thể thiếu.",
     "Mọi người tìm đến tôi khi họ cần hỗ trợ cảm xúc.",
     "Tôi có xu hướng đặt nhu cầu người khác lên trước nhu cầu của mình.",
+    "Tôi xây dựng bản sắc của mình xung quanh việc quan tâm và không thể thiếu đối với người khác.",
     "Tôi có nhu cầu mạnh mẽ được nhìn nhận là người thành công.",
     "Tôi rất ý thức về hình ảnh và nhận thức của người khác về mình.",
     "Tôi đặt mục tiêu tham vọng và thường đạt được chúng.",
@@ -547,6 +552,7 @@ const QUESTIONS_DATA = {
     "Tôi giỏi tạo động lực cho người khác và dẫn dắt nhóm.",
     "Thất bại cảm giác như một cuộc khủng hoảng bản sắc cá nhân.",
     "Tôi thường so sánh mình với người khác để xem mình ở đâu.",
+    "Tôi biến đổi bản thân để trở thành bất cứ ai mà tình huống đòi hỏi.",
     "Tôi cảm thấy mình về cơ bản khác biệt với người khác.",
     "Tôi bị thu hút bởi những gì mãnh liệt, đẹp đẽ và có ý nghĩa.",
     "Tôi trải nghiệm cảm xúc sâu sắc hơn hầu hết mọi người xung quanh.",
@@ -622,7 +628,7 @@ const QUESTIONS_DATA = {
   ]
 };
 
-const Q_TYPES = [1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9];
+const Q_TYPES = [1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9,9,9,9,9];
 
 const SHUFFLE_ORDER = (() => {
   const arr = Array.from({ length: 108 }, (_, i) => i);
@@ -643,7 +649,7 @@ function getCompat(a, b, lang) {
 const StarRating = ({ rating }) => (
   <div style={{ display: "flex", gap: 3 }}>
     {[1, 2, 3, 4, 5].map(i => (
-      <span key={i} style={{ color: i <= rating ? "#FFD700" : "#333", fontSize: 18, filter: i <= rating ? "drop-shadow(0 0 3px rgba(255,215,0,0.5))" : "none" }}>★</span>
+      <span key={i} style={{ color: i <= rating ? "#D4A017" : "#ccc", fontSize: 18, filter: i <= rating ? "drop-shadow(0 0 3px rgba(255,215,0,0.5))" : "none" }}>★</span>
     ))}
   </div>
 );
@@ -657,14 +663,14 @@ const LangToggle = () => {
       style={{
         position: "fixed", top: 14, right: 14, zIndex: 100,
         display: "flex", alignItems: "center", gap: 6,
-        background: "rgba(20,18,24,0.85)", backdropFilter: "blur(12px)",
-        border: "1px solid rgba(200,180,160,0.15)", borderRadius: 20,
+        background: "rgba(245,240,232,0.9)", backdropFilter: "blur(12px)",
+        border: "1px solid rgba(80,70,60,0.15)", borderRadius: 20,
         padding: "7px 14px", cursor: "pointer", transition: "all 0.25s",
         fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 1,
-        color: "#c8c0b4"
+        color: "#4a4540"
       }}
-      onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(200,180,160,0.45)"; e.currentTarget.style.background = "rgba(30,28,34,0.95)"; }}
-      onMouseOut={e => { e.currentTarget.style.borderColor = "rgba(200,180,160,0.15)"; e.currentTarget.style.background = "rgba(20,18,24,0.85)"; }}
+      onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(80,70,60,0.45)"; e.currentTarget.style.background = "rgba(30,28,34,0.95)"; }}
+      onMouseOut={e => { e.currentTarget.style.borderColor = "rgba(80,70,60,0.15)"; e.currentTarget.style.background = "rgba(20,18,24,0.85)"; }}
     >
       <span style={{ fontSize: 15 }}>🌐</span>
       <span style={{ fontWeight: 500 }}>{lang === "en" ? "VI" : "EN"}</span>
@@ -719,39 +725,39 @@ function EnneagramTest() {
 
   return (
     <LangCtx.Provider value={{ lang, setLang }}>
-      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+      
       <LangToggle />
 
       {screen === "landing" && (
         <div style={{
           minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(160deg, #0a0a0f 0%, #1a1025 40%, #0d1520 100%)",
-          fontFamily: "'Cormorant Garamond', Georgia, serif", color: "#e8e0d4", padding: 24, textAlign: "center",
+          background: "linear-gradient(160deg, #F5F0E8 0%, #EDE7DA 40%, #F0EBE0 100%)",
+          fontFamily: "'Cormorant Garamond', Georgia, serif", color: "#2a2520", padding: 24, textAlign: "center",
           position: "relative", overflow: "hidden"
         }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 30% 20%, rgba(120,80,160,0.08) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(60,120,160,0.06) 0%, transparent 50%)" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 30% 20%, rgba(120,80,160,0.04) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(60,120,160,0.03) 0%, transparent 50%)" }} />
           <div style={{ position: "relative", zIndex: 1, maxWidth: 600 }}>
             <div style={{ fontSize: 72, marginBottom: 8, letterSpacing: -2 }}>◉</div>
             <h1 style={{ fontSize: "clamp(36px, 6vw, 56px)", fontWeight: 300, margin: "0 0 12px", letterSpacing: -1, lineHeight: 1.1 }}>
               {lang === "en" ? "The Enneagram" : "Enneagram"}
             </h1>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, letterSpacing: 4, textTransform: "uppercase", color: "#9a8eb0", marginBottom: 32, fontWeight: 300 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, letterSpacing: 4, textTransform: "uppercase", color: "#6a5e80", marginBottom: 32, fontWeight: 300 }}>
               {ui.tagline}
             </p>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.8, color: "#a09890", maxWidth: 480, margin: "0 auto 40px", fontWeight: 300 }}>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 16, lineHeight: 1.8, color: "#5a5550", maxWidth: 480, margin: "0 auto 40px", fontWeight: 300 }}>
               {ui.intro}
             </p>
             <button onClick={() => setScreen("test")} style={{
               fontFamily: "'DM Sans', sans-serif", fontSize: 13, letterSpacing: 3, textTransform: "uppercase",
-              padding: "16px 48px", border: "1px solid rgba(200,180,160,0.3)", background: "rgba(200,180,160,0.06)",
-              color: "#e8e0d4", cursor: "pointer", transition: "all 0.3s", borderRadius: 0,
+              padding: "16px 48px", border: "1px solid rgba(80,70,60,0.3)", background: "rgba(80,70,60,0.06)",
+              color: "#2a2520", cursor: "pointer", transition: "all 0.3s", borderRadius: 0,
             }}
-              onMouseOver={e => { e.target.style.background = "rgba(200,180,160,0.15)"; e.target.style.borderColor = "rgba(200,180,160,0.6)"; }}
-              onMouseOut={e => { e.target.style.background = "rgba(200,180,160,0.06)"; e.target.style.borderColor = "rgba(200,180,160,0.3)"; }}
+              onMouseOver={e => { e.target.style.background = "rgba(80,70,60,0.15)"; e.target.style.borderColor = "rgba(80,70,60,0.6)"; }}
+              onMouseOut={e => { e.target.style.background = "rgba(80,70,60,0.06)"; e.target.style.borderColor = "rgba(80,70,60,0.3)"; }}
             >
               {ui.begin}
             </button>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#5a5250", marginTop: 20 }}>{ui.duration}</p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9a9590", marginTop: 20 }}>{ui.duration}</p>
           </div>
         </div>
       )}
@@ -767,16 +773,16 @@ function EnneagramTest() {
         return (
           <div style={{
             minHeight: "100vh", display: "flex", flexDirection: "column",
-            background: "linear-gradient(160deg, #0a0a0f 0%, #1a1025 40%, #0d1520 100%)",
-            fontFamily: "'DM Sans', sans-serif", color: "#e8e0d4", position: "relative"
+            background: "linear-gradient(160deg, #F5F0E8 0%, #EDE7DA 40%, #F0EBE0 100%)",
+            fontFamily: "'DM Sans', sans-serif", color: "#2a2520", position: "relative"
           }}>
-            <div style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(10,10,15,0.9)", backdropFilter: "blur(10px)", padding: "12px 24px", borderBottom: "1px solid rgba(200,180,160,0.08)" }}>
+            <div style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(245,240,232,0.95)", backdropFilter: "blur(10px)", padding: "12px 24px", borderBottom: "1px solid rgba(80,70,60,0.08)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: 640, margin: "0 auto" }}>
-                <span style={{ fontSize: 12, color: "#7a7270", letterSpacing: 2 }}>{Object.keys(answers).length} / {totalQ}</span>
-                <span style={{ fontSize: 12, color: "#7a7270", letterSpacing: 1 }}>{lang === "en" ? `Page ${page + 1} of ${totalPages}` : `Trang ${page + 1} / ${totalPages}`}</span>
-                <span style={{ fontSize: 12, color: "#7a7270" }}>{Math.round(progress)}%</span>
+                <span style={{ fontSize: 12, color: "#7a7570", letterSpacing: 2 }}>{Object.keys(answers).length} / {totalQ}</span>
+                <span style={{ fontSize: 12, color: "#7a7570", letterSpacing: 1 }}>{lang === "en" ? `Page ${page + 1} of ${totalPages}` : `Trang ${page + 1} / ${totalPages}`}</span>
+                <span style={{ fontSize: 12, color: "#7a7570" }}>{Math.round(progress)}%</span>
               </div>
-              <div style={{ maxWidth: 640, margin: "8px auto 0", height: 2, background: "rgba(200,180,160,0.1)", borderRadius: 1 }}>
+              <div style={{ maxWidth: 640, margin: "8px auto 0", height: 2, background: "rgba(80,70,60,0.1)", borderRadius: 1 }}>
                 <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, #8a7090, #c0a080)", borderRadius: 1, transition: "width 0.4s ease" }} />
               </div>
             </div>
@@ -784,9 +790,9 @@ function EnneagramTest() {
               <div style={{ maxWidth: 600, width: "100%", opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(12px)", transition: "all 0.25s ease" }}>
                 {/* Scale legend — shown once at the top */}
                 <div style={{ display: "flex", justifyContent: "space-between", maxWidth: 340, margin: "0 auto 28px", padding: "0 4px" }}>
-                  <span style={{ fontSize: 11, color: "#6a6260", fontWeight: 300 }}>{ui.answers[0]}</span>
-                  <span style={{ fontSize: 11, color: "#6a6260", fontWeight: 300 }}>{ui.answers[2]}</span>
-                  <span style={{ fontSize: 11, color: "#6a6260", fontWeight: 300 }}>{ui.answers[4]}</span>
+                  <span style={{ fontSize: 11, color: "#8a8580", fontWeight: 300 }}>{ui.answers[0]}</span>
+                  <span style={{ fontSize: 11, color: "#8a8580", fontWeight: 300 }}>{ui.answers[2]}</span>
+                  <span style={{ fontSize: 11, color: "#8a8580", fontWeight: 300 }}>{ui.answers[4]}</span>
                 </div>
 
                 {/* Questions */}
@@ -795,15 +801,15 @@ function EnneagramTest() {
                     const q = getQuestion(qi);
                     const qAnswer = answers[qi];
                     return (
-                      <div key={qi} style={{ padding: "20px 24px", border: "1px solid rgba(200,180,160,0.08)", background: qAnswer !== undefined ? "rgba(200,180,160,0.03)" : "transparent", transition: "background 0.3s" }}>
-                        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(17px, 3vw, 21px)", fontWeight: 300, lineHeight: 1.5, color: "#e8e0d4", marginBottom: 18 }}>
-                          <span style={{ color: "#5a5250", fontSize: 13, fontFamily: "'DM Sans'", marginRight: 8 }}>{qi + 1}.</span>
+                      <div key={qi} style={{ padding: "20px 24px", border: "1px solid rgba(80,70,60,0.08)", background: qAnswer !== undefined ? "rgba(80,70,60,0.03)" : "transparent", transition: "background 0.3s" }}>
+                        <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(17px, 3vw, 21px)", fontWeight: 300, lineHeight: 1.5, color: "#2a2520", marginBottom: 18 }}>
+                          <span style={{ color: "#9a9590", fontSize: 13, fontFamily: "'DM Sans'", marginRight: 8 }}>{qi + 1}.</span>
                           {q.text}
                         </p>
                         {/* Horizontal Likert scale */}
                         <div style={{ display: "flex", alignItems: "center", width: "100%", maxWidth: 340, margin: "0 auto" }}>
                           <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "0 4px" }}>
-                            <div style={{ position: "absolute", top: "50%", left: 20, right: 20, height: 1, background: "rgba(200,180,160,0.12)", transform: "translateY(-50%)" }} />
+                            <div style={{ position: "absolute", top: "50%", left: 20, right: 20, height: 1, background: "rgba(80,70,60,0.12)", transform: "translateY(-50%)" }} />
                             {answerVals.map((val, idx) => {
                               const isSelected = qAnswer === val;
                               const sizes = [36, 30, 26, 30, 36];
@@ -811,8 +817,8 @@ function EnneagramTest() {
                               return (
                                 <button key={val} onClick={() => setAnswers(prev => ({ ...prev, [qi]: val }))} style={{
                                   position: "relative", zIndex: 1, width: sz, height: sz, borderRadius: "50%",
-                                  background: isSelected ? "rgba(192,160,128,0.2)" : "rgba(200,180,160,0.04)",
-                                  border: isSelected ? "2px solid rgba(192,160,128,0.7)" : "1px solid rgba(200,180,160,0.2)",
+                                  background: isSelected ? "rgba(192,160,128,0.2)" : "rgba(80,70,60,0.04)",
+                                  border: isSelected ? "2px solid rgba(192,160,128,0.7)" : "1px solid rgba(80,70,60,0.2)",
                                   color: isSelected ? "#e8e0d4" : "#7a7270",
                                   cursor: "pointer", transition: "all 0.2s", padding: 0,
                                   display: "flex", alignItems: "center", justifyContent: "center",
@@ -820,8 +826,8 @@ function EnneagramTest() {
                                   boxShadow: isSelected ? "0 0 12px rgba(192,160,128,0.25)" : "none",
                                   flexShrink: 0
                                 }}
-                                  onMouseOver={e => { if (!isSelected) { e.currentTarget.style.background = "rgba(200,180,160,0.1)"; e.currentTarget.style.borderColor = "rgba(200,180,160,0.4)"; }}}
-                                  onMouseOut={e => { if (!isSelected) { e.currentTarget.style.background = "rgba(200,180,160,0.04)"; e.currentTarget.style.borderColor = "rgba(200,180,160,0.2)"; }}}
+                                  onMouseOver={e => { if (!isSelected) { e.currentTarget.style.background = "rgba(80,70,60,0.1)"; e.currentTarget.style.borderColor = "rgba(80,70,60,0.4)"; }}}
+                                  onMouseOut={e => { if (!isSelected) { e.currentTarget.style.background = "rgba(80,70,60,0.04)"; e.currentTarget.style.borderColor = "rgba(80,70,60,0.2)"; }}}
                                 >
                                   {isSelected ? "✓" : val}
                                 </button>
@@ -838,18 +844,18 @@ function EnneagramTest() {
               {/* Navigation */}
               <div style={{ display: "flex", gap: 16, marginTop: 32, alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
                 <button onClick={() => { if (page > 0) { setFadeIn(false); setTimeout(() => { setCurrentQ((page - 1) * perPage); setFadeIn(true); }, 200); }}} disabled={page === 0}
-                  style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 2, padding: "10px 24px", background: "transparent", border: "1px solid rgba(200,180,160,0.15)", color: page === 0 ? "#3a3230" : "#7a7270", cursor: page === 0 ? "default" : "pointer", textTransform: "uppercase" }}>
+                  style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 2, padding: "10px 24px", background: "transparent", border: "1px solid rgba(80,70,60,0.15)", color: page === 0 ? "#3a3230" : "#7a7270", cursor: page === 0 ? "default" : "pointer", textTransform: "uppercase" }}>
                   {ui.back}
                 </button>
                 {page < totalPages - 1 && pageAllAnswered && (
                   <button onClick={() => { setFadeIn(false); setTimeout(() => { setCurrentQ((page + 1) * perPage); setFadeIn(true); }, 200); }}
-                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 2, padding: "10px 24px", background: "transparent", border: "1px solid rgba(200,180,160,0.15)", color: "#7a7270", cursor: "pointer", textTransform: "uppercase" }}>
+                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 2, padding: "10px 24px", background: "transparent", border: "1px solid rgba(80,70,60,0.15)", color: "#7a7570", cursor: "pointer", textTransform: "uppercase" }}>
                     {ui.next}
                   </button>
                 )}
                 {allAnswered && (
                   <button onClick={calculateResult}
-                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 3, padding: "12px 32px", background: "rgba(192,160,128,0.15)", border: "1px solid rgba(192,160,128,0.4)", color: "#e8e0d4", cursor: "pointer", textTransform: "uppercase", transition: "all 0.3s" }}
+                    style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, letterSpacing: 3, padding: "12px 32px", background: "rgba(192,160,128,0.15)", border: "1px solid rgba(192,160,128,0.4)", color: "#2a2520", cursor: "pointer", textTransform: "uppercase", transition: "all 0.3s" }}
                     onMouseOver={e => { e.target.style.background = "rgba(192,160,128,0.25)"; }}
                     onMouseOut={e => { e.target.style.background = "rgba(192,160,128,0.15)"; }}
                   >
@@ -862,7 +868,7 @@ function EnneagramTest() {
                   const first = Array.from({ length: totalQ }, (_, i) => i).find(i => answers[i] === undefined);
                   if (first !== undefined) { setFadeIn(false); setTimeout(() => { setCurrentQ(Math.floor(first / perPage) * perPage); setFadeIn(true); }, 200); }
                 }}
-                  style={{ marginTop: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#6a6260", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3 }}>
+                  style={{ marginTop: 12, fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: "#8a8580", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 3 }}>
                   {ui.jumpUnanswered(totalQ - Object.keys(answers).length)}
                 </button>
               )}
@@ -878,13 +884,13 @@ function EnneagramTest() {
         return (
           <div ref={resultRef} style={{
             minHeight: "100vh",
-            background: "linear-gradient(160deg, #0a0a0f 0%, #1a1025 40%, #0d1520 100%)",
-            fontFamily: "'DM Sans', sans-serif", color: "#e8e0d4", overflowX: "hidden"
+            background: "linear-gradient(160deg, #F5F0E8 0%, #EDE7DA 40%, #F0EBE0 100%)",
+            fontFamily: "'DM Sans', sans-serif", color: "#2a2520", overflowX: "hidden"
           }}>
             <div style={{ padding: "60px 24px 48px", textAlign: "center", position: "relative" }}>
               <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at 50% 30%, ${tc.color}22 0%, transparent 60%)` }} />
               <div style={{ position: "relative", zIndex: 1 }}>
-                <p style={{ fontFamily: "'DM Sans'", fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#7a7270", marginBottom: 16 }}>{ui.yourType}</p>
+                <p style={{ fontFamily: "'DM Sans'", fontSize: 12, letterSpacing: 4, textTransform: "uppercase", color: "#7a7570", marginBottom: 16 }}>{ui.yourType}</p>
                 <div style={{ fontSize: 80, fontFamily: "'Cormorant Garamond'", fontWeight: 300, color: tc.accent, lineHeight: 1, marginBottom: 8 }}>{result.type}</div>
                 <h1 style={{ fontFamily: "'Cormorant Garamond'", fontSize: "clamp(32px, 6vw, 48px)", fontWeight: 300, margin: "0 0 8px", letterSpacing: -0.5 }}>{td.name}</h1>
                 <p style={{ fontSize: 14, color: tc.accent, letterSpacing: 1, fontWeight: 300, opacity: 0.8 }}>{td.subtitle}</p>
@@ -893,7 +899,7 @@ function EnneagramTest() {
 
             <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 24px 60px" }}>
               <section style={{ marginBottom: 48 }}>
-                <p style={{ fontFamily: "'Cormorant Garamond'", fontSize: 20, lineHeight: 1.8, fontWeight: 300, color: "#c8c0b4" }}>{td.description}</p>
+                <p style={{ fontFamily: "'Cormorant Garamond'", fontSize: 20, lineHeight: 1.8, fontWeight: 300, color: "#4a4540" }}>{td.description}</p>
               </section>
 
               <section style={{ marginBottom: 48 }}>
@@ -902,38 +908,38 @@ function EnneagramTest() {
                   {result.scores.map(({ type: tp, score }) => (
                     <div key={tp} style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <span style={{ width: 24, fontSize: 13, color: tp === result.type ? tc.accent : "#6a6260", fontWeight: tp === result.type ? 500 : 300, textAlign: "right" }}>{tp}</span>
-                      <div style={{ flex: 1, height: 6, background: "rgba(200,180,160,0.08)", borderRadius: 3, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${(score / maxPossible) * 100}%`, background: tp === result.type ? tc.accent : "rgba(200,180,160,0.25)", borderRadius: 3, transition: "width 1s ease" }} />
+                      <div style={{ flex: 1, height: 6, background: "rgba(80,70,60,0.08)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${(score / maxPossible) * 100}%`, background: tp === result.type ? tc.accent : "rgba(80,70,60,0.25)", borderRadius: 3, transition: "width 1s ease" }} />
                       </div>
-                      <span style={{ fontSize: 12, color: "#6a6260", width: 30, textAlign: "right" }}>{Math.round((score / maxPossible) * 100)}%</span>
+                      <span style={{ fontSize: 12, color: "#8a8580", width: 30, textAlign: "right" }}>{Math.round((score / maxPossible) * 100)}%</span>
                     </div>
                   ))}
                 </div>
               </section>
 
               <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 48 }}>
-                <div style={{ padding: 20, border: "1px solid rgba(200,180,160,0.1)", background: "rgba(200,180,160,0.02)" }}>
+                <div style={{ padding: 20, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(80,70,60,0.02)" }}>
                   <h3 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 18, fontWeight: 400, marginBottom: 12, color: tc.accent }}>{ui.strengths}</h3>
-                  {td.strengths.map((s, i) => <p key={i} style={{ fontSize: 13, color: "#a09890", marginBottom: 6, fontWeight: 300 }}>— {s}</p>)}
+                  {td.strengths.map((s, i) => <p key={i} style={{ fontSize: 14, color: "#5a5550", marginBottom: 6, fontWeight: 300 }}>— {s}</p>)}
                 </div>
-                <div style={{ padding: 20, border: "1px solid rgba(200,180,160,0.1)", background: "rgba(200,180,160,0.02)" }}>
+                <div style={{ padding: 20, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(80,70,60,0.02)" }}>
                   <h3 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 18, fontWeight: 400, marginBottom: 12, color: "#c08070" }}>{ui.challenges}</h3>
-                  {td.challenges.map((s, i) => <p key={i} style={{ fontSize: 13, color: "#a09890", marginBottom: 6, fontWeight: 300 }}>— {s}</p>)}
+                  {td.challenges.map((s, i) => <p key={i} style={{ fontSize: 14, color: "#5a5550", marginBottom: 6, fontWeight: 300 }}>— {s}</p>)}
                 </div>
               </section>
 
-              <section style={{ marginBottom: 48, padding: 24, borderLeft: `2px solid ${tc.accent}40`, background: "rgba(200,180,160,0.02)" }}>
+              <section style={{ marginBottom: 48, padding: 24, borderLeft: `2px solid ${tc.accent}40`, background: "rgba(80,70,60,0.02)" }}>
                 <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 400, marginBottom: 12 }}>{ui.growthTitle}</h2>
-                <p style={{ fontSize: 14, lineHeight: 1.8, color: "#a09890", fontWeight: 300 }}>{td.growth}</p>
+                <p style={{ fontSize: 16, lineHeight: 1.8, color: "#5a5550", fontWeight: 300 }}>{td.growth}</p>
               </section>
 
               <section style={{ marginBottom: 56 }}>
                 <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 24, fontWeight: 400, marginBottom: 20 }}>{ui.famousTitle(result.type)}</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   {td.famous.map((f, i) => (
-                    <div key={i} style={{ padding: 16, border: "1px solid rgba(200,180,160,0.1)", background: "rgba(200,180,160,0.02)" }}>
+                    <div key={i} style={{ padding: 16, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(80,70,60,0.02)" }}>
                       <p style={{ fontFamily: "'Cormorant Garamond'", fontSize: 18, fontWeight: 500, marginBottom: 4 }}>{f.name}</p>
-                      <p style={{ fontSize: 12, color: "#7a7270", fontWeight: 300, fontStyle: "italic" }}>{f.note}</p>
+                      <p style={{ fontSize: 13, color: "#7a7570", fontWeight: 300, fontStyle: "italic" }}>{f.note}</p>
                     </div>
                   ))}
                 </div>
@@ -941,7 +947,7 @@ function EnneagramTest() {
 
               <section style={{ marginBottom: 48 }}>
                 <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 28, fontWeight: 400, marginBottom: 8, textAlign: "center" }}>{ui.compatTitle}</h2>
-                <p style={{ fontSize: 13, color: "#7a7270", textAlign: "center", marginBottom: 28, fontWeight: 300 }}>{ui.compatSub(result.type)}</p>
+                <p style={{ fontSize: 13, color: "#7a7570", textAlign: "center", marginBottom: 28, fontWeight: 300 }}>{ui.compatSub(result.type)}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {[1,2,3,4,5,6,7,8,9].map(other => {
                     const c = getCompat(result.type, other, lang);
@@ -950,25 +956,25 @@ function EnneagramTest() {
                     const otc = TYPE_COLORS[other];
                     return (
                       <div key={other} onClick={() => setExpandedCompat(isExp ? null : other)}
-                        style={{ padding: "16px 20px", border: "1px solid rgba(200,180,160,0.1)", background: isExp ? "rgba(200,180,160,0.05)" : "rgba(200,180,160,0.02)", cursor: "pointer", transition: "all 0.2s" }}
-                        onMouseOver={e => { if (!isExp) e.currentTarget.style.background = "rgba(200,180,160,0.04)"; }}
-                        onMouseOut={e => { if (!isExp) e.currentTarget.style.background = "rgba(200,180,160,0.02)"; }}
+                        style={{ padding: "16px 20px", border: "1px solid rgba(80,70,60,0.1)", background: isExp ? "rgba(80,70,60,0.05)" : "rgba(80,70,60,0.02)", cursor: "pointer", transition: "all 0.2s" }}
+                        onMouseOver={e => { if (!isExp) e.currentTarget.style.background = "rgba(80,70,60,0.04)"; }}
+                        onMouseOut={e => { if (!isExp) e.currentTarget.style.background = "rgba(80,70,60,0.02)"; }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                             <span style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 300, color: otc.accent, width: 28 }}>{other}</span>
                             <div>
-                              <span style={{ fontSize: 14, fontWeight: 400 }}>{ot.name}</span>
+                              <span style={{ fontSize: 15, fontWeight: 400 }}>{ot.name}</span>
                               {other === result.type && <span style={{ fontSize: 10, color: tc.accent, marginLeft: 8, letterSpacing: 1 }}>{ui.sameType}</span>}
                             </div>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <StarRating rating={c.r} />
-                            <span style={{ fontSize: 16, color: "#5a5250", transition: "transform 0.2s", transform: isExp ? "rotate(180deg)" : "rotate(0)" }}>▾</span>
+                            <span style={{ fontSize: 16, color: "#9a9590", transition: "transform 0.2s", transform: isExp ? "rotate(180deg)" : "rotate(0)" }}>▾</span>
                           </div>
                         </div>
                         {isExp && (
-                          <p style={{ marginTop: 14, fontSize: 13, lineHeight: 1.7, color: "#a09890", fontWeight: 300, borderTop: "1px solid rgba(200,180,160,0.08)", paddingTop: 14 }}>
+                          <p style={{ marginTop: 14, fontSize: 15, lineHeight: 1.7, color: "#5a5550", fontWeight: 300, borderTop: "1px solid rgba(80,70,60,0.08)", paddingTop: 14 }}>
                             {c.d}
                           </p>
                         )}
@@ -980,9 +986,9 @@ function EnneagramTest() {
 
               <div style={{ textAlign: "center", paddingTop: 20, paddingBottom: 40 }}>
                 <button onClick={() => { setScreen("landing"); setAnswers({}); setCurrentQ(0); setResult(null); setExpandedCompat(null); }}
-                  style={{ fontFamily: "'DM Sans'", fontSize: 12, letterSpacing: 3, textTransform: "uppercase", padding: "14px 40px", background: "transparent", border: "1px solid rgba(200,180,160,0.2)", color: "#7a7270", cursor: "pointer" }}
-                  onMouseOver={e => { e.target.style.borderColor = "rgba(200,180,160,0.5)"; e.target.style.color = "#c8c0b4"; }}
-                  onMouseOut={e => { e.target.style.borderColor = "rgba(200,180,160,0.2)"; e.target.style.color = "#7a7270"; }}
+                  style={{ fontFamily: "'DM Sans'", fontSize: 12, letterSpacing: 3, textTransform: "uppercase", padding: "14px 40px", background: "transparent", border: "1px solid rgba(80,70,60,0.2)", color: "#7a7570", cursor: "pointer" }}
+                  onMouseOver={e => { e.target.style.borderColor = "rgba(80,70,60,0.5)"; e.target.style.color = "#c8c0b4"; }}
+                  onMouseOut={e => { e.target.style.borderColor = "rgba(80,70,60,0.2)"; e.target.style.color = "#7a7270"; }}
                 >
                   {ui.retake}
                 </button>
