@@ -20,7 +20,6 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script>window.ENNEAGRAM_SHEET_URL = "https://script.google.com/macros/s/AKfycbxNiO3nAyfbkZqC5g7q-bKAOPznsekfMC5MdAl8uAZslfzwdFWdzhTl50RWioA0E9V_GQ/exec";</script>
   <script type="text/babel">
     const { useState, useRef, createContext, useContext } = React;
 
@@ -732,6 +731,40 @@ function EnneagramTest() {
     setResult({ type: winner, scores: sortedScores, raw: scores });
     setScreen("results");
     setTimeout(() => resultRef.current?.scrollTo(0, 0), 50);
+
+    // Send results to Google Sheets (if endpoint configured)
+    const SHEET_URL = window.ENNEAGRAM_SHEET_URL || "";
+    if (SHEET_URL) {
+      try {
+        const top3 = sortedScores.slice(0, 3).map(s => s.type).join(",");
+        const payload = JSON.stringify({
+          language: lang,
+          resultType: winner,
+          scores: scores,
+          top3: top3
+        });
+        // Use iframe + form POST to avoid CORS issues
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.name = "enneagram_submit_" + Date.now();
+        document.body.appendChild(iframe);
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = SHEET_URL;
+        form.target = iframe.name;
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "payload";
+        input.value = payload;
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+        setTimeout(() => {
+          try { document.body.removeChild(iframe); } catch(e) {}
+          try { document.body.removeChild(form); } catch(e) {}
+        }, 5000);
+      } catch(e) {}
+    }
   };
 
   const answerVals = [1, 2, 3, 4, 5];
