@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enneagram Test — Analytics Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { min-height: 100vh; }
+    body { background: #F5F0E8; font-family: 'DM Sans', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const TYPE_NAMES = {
+      1: "The Reformer", 2: "The Helper", 3: "The Achiever",
+      4: "The Individualist", 5: "The Investigator", 6: "The Loyalist",
+      7: "The Enthusiast", 8: "The Challenger", 9: "The Peacemaker"
+    };
+
+    const TYPE_COLORS = {
+      1: "#8BC34A", 2: "#FF6B9D", 3: "#FFD700",
+      4: "#CE93D8", 5: "#64B5F6", 6: "#4DB6AC",
+      7: "#FFB74D", 8: "#EF5350", 9: "#90A4AE"
+    };
+
+    // ─── CONFIGURATION ───
+    // Replace this with your Google Apps Script Web App URL
+    const SHEET_URL = window.ENNEAGRAM_SHEET_URL || "";
+
+    function Dashboard() {
+      const [data, setData] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [urlInput, setUrlInput] = useState(SHEET_URL);
+      const [activeUrl, setActiveUrl] = useState(SHEET_URL);
+
+      const fetchData = (url) => {
+        if (!url) { setLoading(false); return; }
+        setLoading(true);
+        setError(null);
+        fetch(url)
+          .then(r => r.json())
+          .then(d => {
+            if (d.status === "ok") {
+              setData(d.data || []);
+            } else {
+              setError(d.message || "Unknown error");
+            }
+            setLoading(false);
+          })
+          .catch(e => { setError(e.message); setLoading(false); });
+      };
+
+      useEffect(() => { if (activeUrl) fetchData(activeUrl); else setLoading(false); }, [activeUrl]);
+
+      // ─── Compute Stats ───
+      const stats = (() => {
+        if (!data || data.length === 0) return null;
+
+        const totalResponses = data.length;
+
+        // Count by result type
+        const typeCounts = {};
+        for (let i = 1; i <= 9; i++) typeCounts[i] = 0;
+        data.forEach(row => {
+          const t = parseInt(row["Result Type"]);
+          if (t >= 1 && t <= 9) typeCounts[t]++;
+        });
+
+        // Average scores per type
+        const typeScoreSums = {};
+        for (let i = 1; i <= 9; i++) typeScoreSums[i] = 0;
+        data.forEach(row => {
+          for (let i = 1; i <= 9; i++) {
+            typeScoreSums[i] += parseFloat(row["Type " + i]) || 0;
+          }
+        });
+        const typeAvgs = {};
+        for (let i = 1; i <= 9; i++) typeAvgs[i] = totalResponses > 0 ? (typeScoreSums[i] / totalResponses).toFixed(1) : 0;
+
+        // Language breakdown
+        const langCounts = {};
+        data.forEach(row => {
+          const l = row["Language"] || "en";
+          langCounts[l] = (langCounts[l] || 0) + 1;
+        });
+
+        // Responses over time (by day)
+        const byDay = {};
+        data.forEach(row => {
+          const ts = row["Timestamp"];
+          if (ts) {
+            const day = String(ts).substring(0, 10);
+            byDay[day] = (byDay[day] || 0) + 1;
+          }
+        });
+        const timeline = Object.entries(byDay).sort((a, b) => a[0].localeCompare(b[0]));
+
+        // Most common type
+        const maxCount = Math.max(...Object.values(typeCounts));
+        const mostCommon = parseInt(Object.entries(typeCounts).find(([, v]) => v === maxCount)?.[0] || 1);
+
+        return { totalResponses, typeCounts, typeAvgs, langCounts, timeline, mostCommon, maxCount };
+      })();
+
+      const maxPossible = 12 * 5;
+
+      // ─── Bar Chart Component ───
+      const BarChart = ({ data, maxVal, colorFn, labelFn, valueFn }) => (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {data.map(([key, val]) => (
+            <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ width: 130, fontSize: 13, color: "#5a5550", fontWeight: 400, textAlign: "right", flexShrink: 0 }}>
+                {labelFn ? labelFn(key) : key}
+              </span>
+              <div style={{ flex: 1, height: 28, background: "rgba(80,70,60,0.06)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+                <div style={{
+                  height: "100%", width: maxVal > 0 ? `${(val / maxVal) * 100}%` : "0%",
+                  background: colorFn ? colorFn(key) : "#8a7090",
+                  borderRadius: 4, transition: "width 0.8s ease",
+                  minWidth: val > 0 ? 2 : 0
+                }} />
+                <span style={{
+                  position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+                  fontSize: 12, color: "#7a7570", fontWeight: 400
+                }}>
+                  {valueFn ? valueFn(key, val) : val}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+      // ─── Render ───
+      return (
+        <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #F5F0E8 0%, #EDE7DA 40%, #F0EBE0 100%)", padding: "40px 24px 60px" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto" }}>
+            {/* Header */}
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
+              <p style={{ fontSize: 12, letterSpacing: 4, textTransform: "uppercase", color: "#7a7570", marginBottom: 8 }}>ANALYTICS</p>
+              <h1 style={{ fontFamily: "'Cormorant Garamond'", fontSize: "clamp(32px, 5vw, 44px)", fontWeight: 300, color: "#2a2520", letterSpacing: -0.5, marginBottom: 8 }}>
+                Enneagram Dashboard
+              </h1>
+              <p style={{ fontSize: 14, color: "#7a7570", fontWeight: 300 }}>Real-time survey results and response analytics</p>
+            </div>
+
+            {/* URL Configuration */}
+            {!activeUrl && (
+              <div style={{ padding: 28, border: "1px solid rgba(80,70,60,0.15)", background: "rgba(255,255,255,0.5)", marginBottom: 32, textAlign: "center" }}>
+                <h3 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 20, fontWeight: 400, marginBottom: 12, color: "#2a2520" }}>Connect to Google Sheets</h3>
+                <p style={{ fontSize: 13, color: "#7a7570", marginBottom: 16, lineHeight: 1.6 }}>
+                  Paste your Google Apps Script Web App URL below to load data.
+                </p>
+                <div style={{ display: "flex", gap: 8, maxWidth: 500, margin: "0 auto" }}>
+                  <input
+                    type="text"
+                    value={urlInput}
+                    onChange={e => setUrlInput(e.target.value)}
+                    placeholder="https://script.google.com/macros/s/.../exec"
+                    style={{
+                      flex: 1, padding: "10px 14px", fontSize: 13, border: "1px solid rgba(80,70,60,0.2)",
+                      background: "rgba(255,255,255,0.8)", fontFamily: "'DM Sans'", color: "#2a2520",
+                      outline: "none"
+                    }}
+                  />
+                  <button
+                    onClick={() => { if (urlInput) setActiveUrl(urlInput); }}
+                    style={{
+                      padding: "10px 20px", fontSize: 13, fontFamily: "'DM Sans'", letterSpacing: 1,
+                      background: "rgba(80,70,60,0.08)", border: "1px solid rgba(80,70,60,0.2)",
+                      color: "#2a2520", cursor: "pointer"
+                    }}
+                  >
+                    Connect
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Loading */}
+            {loading && activeUrl && (
+              <div style={{ textAlign: "center", padding: 60, color: "#7a7570" }}>
+                <p style={{ fontSize: 16 }}>Loading data...</p>
+              </div>
+            )}
+
+            {/* Error */}
+            {error && (
+              <div style={{ padding: 20, border: "1px solid rgba(200,80,60,0.3)", background: "rgba(200,80,60,0.05)", marginBottom: 24, color: "#8B3A2A", fontSize: 14 }}>
+                Error: {error}
+              </div>
+            )}
+
+            {/* No data yet */}
+            {!loading && activeUrl && stats && stats.totalResponses === 0 && (
+              <div style={{ textAlign: "center", padding: 60, color: "#7a7570" }}>
+                <p style={{ fontFamily: "'Cormorant Garamond'", fontSize: 24, marginBottom: 8 }}>No responses yet</p>
+                <p style={{ fontSize: 14 }}>Share your test link and results will appear here.</p>
+              </div>
+            )}
+
+            {/* Dashboard Content */}
+            {!loading && stats && stats.totalResponses > 0 && (
+              <>
+                {/* KPI Cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+                  <div style={{ padding: 24, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(255,255,255,0.5)", textAlign: "center" }}>
+                    <p style={{ fontSize: 36, fontFamily: "'Cormorant Garamond'", fontWeight: 300, color: "#2a2520" }}>{stats.totalResponses}</p>
+                    <p style={{ fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#7a7570", marginTop: 4 }}>Total Responses</p>
+                  </div>
+                  <div style={{ padding: 24, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(255,255,255,0.5)", textAlign: "center" }}>
+                    <p style={{ fontSize: 36, fontFamily: "'Cormorant Garamond'", fontWeight: 300, color: TYPE_COLORS[stats.mostCommon] }}>{stats.mostCommon}</p>
+                    <p style={{ fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#7a7570", marginTop: 4 }}>Most Common Type</p>
+                    <p style={{ fontSize: 13, color: "#5a5550", marginTop: 2 }}>{TYPE_NAMES[stats.mostCommon]}</p>
+                  </div>
+                  <div style={{ padding: 24, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(255,255,255,0.5)", textAlign: "center" }}>
+                    <p style={{ fontSize: 36, fontFamily: "'Cormorant Garamond'", fontWeight: 300, color: "#2a2520" }}>
+                      {Object.keys(stats.langCounts).length}
+                    </p>
+                    <p style={{ fontSize: 12, letterSpacing: 2, textTransform: "uppercase", color: "#7a7570", marginTop: 4 }}>Languages Used</p>
+                    <p style={{ fontSize: 13, color: "#5a5550", marginTop: 2 }}>
+                      {Object.entries(stats.langCounts).map(([l, c]) => `${l.toUpperCase()}: ${c}`).join("  ·  ")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Type Distribution */}
+                <div style={{ padding: 28, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 400, marginBottom: 20 }}>Result Type Distribution</h2>
+                  <BarChart
+                    data={Object.entries(stats.typeCounts).sort((a, b) => b[1] - a[1])}
+                    maxVal={stats.maxCount}
+                    colorFn={k => TYPE_COLORS[k]}
+                    labelFn={k => `Type ${k} — ${TYPE_NAMES[parseInt(k)]}`}
+                    valueFn={(k, v) => `${v} (${stats.totalResponses > 0 ? Math.round((v / stats.totalResponses) * 100) : 0}%)`}
+                  />
+                </div>
+
+                {/* Average Scores */}
+                <div style={{ padding: 28, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 400, marginBottom: 20 }}>Average Scores by Type</h2>
+                  <p style={{ fontSize: 13, color: "#7a7570", marginBottom: 16 }}>Mean score across all respondents (max {maxPossible})</p>
+                  <BarChart
+                    data={Object.entries(stats.typeAvgs).sort((a, b) => parseFloat(b[1]) - parseFloat(a[1]))}
+                    maxVal={maxPossible}
+                    colorFn={k => TYPE_COLORS[k]}
+                    labelFn={k => `Type ${k} — ${TYPE_NAMES[parseInt(k)]}`}
+                    valueFn={(k, v) => `${v} (${Math.round((v / maxPossible) * 100)}%)`}
+                  />
+                </div>
+
+                {/* Response Timeline */}
+                {stats.timeline.length > 1 && (
+                  <div style={{ padding: 28, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+                    <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 400, marginBottom: 20 }}>Responses Over Time</h2>
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 140, padding: "0 4px" }}>
+                      {(() => {
+                        const maxDay = Math.max(...stats.timeline.map(([, v]) => v));
+                        return stats.timeline.map(([day, count]) => (
+                          <div key={day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                            <span style={{ fontSize: 10, color: "#7a7570" }}>{count}</span>
+                            <div style={{
+                              width: "100%", maxWidth: 40,
+                              height: `${maxDay > 0 ? (count / maxDay) * 100 : 0}px`,
+                              minHeight: count > 0 ? 4 : 0,
+                              background: "linear-gradient(180deg, #8a7090, #c0a080)",
+                              borderRadius: "3px 3px 0 0"
+                            }} />
+                            <span style={{ fontSize: 9, color: "#9a9590", transform: "rotate(-45deg)", whiteSpace: "nowrap", transformOrigin: "center" }}>
+                              {day.substring(5)}
+                            </span>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recent Responses Table */}
+                <div style={{ padding: 28, border: "1px solid rgba(80,70,60,0.1)", background: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+                  <h2 style={{ fontFamily: "'Cormorant Garamond'", fontSize: 22, fontWeight: 400, marginBottom: 20 }}>
+                    Recent Responses
+                    <span style={{ fontSize: 13, fontFamily: "'DM Sans'", color: "#7a7570", marginLeft: 12, fontWeight: 300 }}>
+                      (last 20)
+                    </span>
+                  </h2>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ borderBottom: "1px solid rgba(80,70,60,0.15)" }}>
+                          <th style={{ padding: "8px 12px", textAlign: "left", color: "#7a7570", fontWeight: 500, fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>Time</th>
+                          <th style={{ padding: "8px 12px", textAlign: "center", color: "#7a7570", fontWeight: 500, fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>Lang</th>
+                          <th style={{ padding: "8px 12px", textAlign: "center", color: "#7a7570", fontWeight: 500, fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>Result</th>
+                          <th style={{ padding: "8px 12px", textAlign: "left", color: "#7a7570", fontWeight: 500, fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>Top 3</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.slice(-20).reverse().map((row, i) => {
+                          const t = parseInt(row["Result Type"]);
+                          return (
+                            <tr key={i} style={{ borderBottom: "1px solid rgba(80,70,60,0.06)" }}>
+                              <td style={{ padding: "10px 12px", color: "#5a5550" }}>
+                                {String(row["Timestamp"] || "").substring(0, 16).replace("T", " ")}
+                              </td>
+                              <td style={{ padding: "10px 12px", textAlign: "center", color: "#7a7570" }}>
+                                {(row["Language"] || "en").toUpperCase()}
+                              </td>
+                              <td style={{ padding: "10px 12px", textAlign: "center" }}>
+                                <span style={{
+                                  display: "inline-block", padding: "2px 10px", borderRadius: 12,
+                                  background: TYPE_COLORS[t] ? TYPE_COLORS[t] + "22" : "#eee",
+                                  color: TYPE_COLORS[t] || "#666", fontWeight: 500, fontSize: 12
+                                }}>
+                                  {t} — {TYPE_NAMES[t] || "?"}
+                                </span>
+                              </td>
+                              <td style={{ padding: "10px 12px", color: "#7a7570" }}>
+                                {row["Top 3"] || "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Refresh */}
+                <div style={{ textAlign: "center", paddingTop: 8 }}>
+                  <button
+                    onClick={() => fetchData(activeUrl)}
+                    style={{
+                      fontFamily: "'DM Sans'", fontSize: 12, letterSpacing: 2, textTransform: "uppercase",
+                      padding: "12px 32px", background: "transparent", border: "1px solid rgba(80,70,60,0.2)",
+                      color: "#7a7570", cursor: "pointer"
+                    }}
+                  >
+                    ↻ Refresh Data
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(Dashboard));
+  </script>
+</body>
+</html>
