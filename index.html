@@ -732,8 +732,8 @@ function EnneagramTest() {
     setScreen("results");
     setTimeout(() => resultRef.current?.scrollTo(0, 0), 50);
 
-    // Send results to Google Sheets (if endpoint configured)
-    const SHEET_URL = window.ENNEAGRAM_SHEET_URL || "";
+    // Send results to Google Sheets
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbxNiO3nAyfbkZqC5g7q-bKAOPznsekfMC5MdAl8uAZslfzwdFWdzhTl50RWioA0E9V_GQ/exec";
     if (SHEET_URL) {
       try {
         const top3 = sortedScores.slice(0, 3).map(s => s.type).join(",");
